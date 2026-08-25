@@ -22,7 +22,7 @@ export default function AdminSidebar() {
     <>
       <aside className="hidden w-60 shrink-0 flex-col bg-green-dark px-4 py-6 sm:flex">
         <Link href="/admin/dashboard" className="flex items-center gap-2 px-2">
-          <Logo href={null} />
+          <Logo href={null} size={56} />
           <span className="font-display text-sm font-bold uppercase tracking-wide text-cream-soft">Admin</span>
         </Link>
 

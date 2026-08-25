@@ -2,7 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 export default function Logo({
-  size = 48,
+  size = 64,
   href = '/menu',
   rounded = 'rounded-2xl',
 }: {
