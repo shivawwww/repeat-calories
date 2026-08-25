@@ -14,7 +14,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
       <div className="relative w-full max-w-md">
         <div className="mx-auto mb-6 flex w-fit">
-          <Logo href="/" size={96} rounded="rounded-3xl" />
+          <Logo href="/" variant="full" height={76} />
         </div>
         <div className="relative rounded-3xl border border-cream-deep bg-cream-soft p-7 shadow-xl shadow-ink/5 sm:p-9">
           {children}
