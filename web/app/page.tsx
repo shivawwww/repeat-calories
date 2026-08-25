@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { getCurrentUser } from '@/lib/auth'
 import Hero from '@/components/landing/Hero'
+import Logo from '@/components/ui/Logo'
 
 const PILLARS = [
   {
@@ -47,9 +47,7 @@ export default async function LandingPage() {
   return (
     <div className="flex-1">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5 sm:px-10 lg:px-16">
-        <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Repeat Calories" width={40} height={40} className="rounded-xl" priority />
-        </Link>
+        <Logo href="/" />
         <div className="flex items-center gap-2 sm:gap-3">
           {user ? (
             <Link
@@ -140,8 +138,8 @@ export default async function LandingPage() {
 
       <footer className="border-t border-cream-deep px-6 py-10 sm:px-10 lg:px-16">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
-          <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Repeat Calories" width={32} height={32} className="rounded-lg" />
+          <div className="flex items-center gap-2.5">
+            <Logo href={null} size={40} />
             <span className="text-sm text-ink-soft">© {new Date().getFullYear()} Repeat Calories, Coimbatore</span>
           </div>
           <div className="flex items-center gap-5 text-sm font-semibold text-ink-soft">

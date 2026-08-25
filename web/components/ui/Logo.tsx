@@ -1,14 +1,22 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-export default function Logo({ size = 44, href = '/menu' }: { size?: number; href?: string | null }) {
+export default function Logo({
+  size = 48,
+  href = '/menu',
+  rounded = 'rounded-2xl',
+}: {
+  size?: number
+  href?: string | null
+  rounded?: string
+}) {
   const img = (
     <Image
       src="/logo.png"
       alt="Repeat Calories"
       width={size}
       height={size}
-      className="rounded-2xl"
+      className={rounded}
       priority
     />
   )

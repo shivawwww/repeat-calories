@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import Image from 'next/image'
 import { useCart } from '@/hooks/useCart'
 import { useAuth } from '@/hooks/useAuth'
 import { IconCart, IconLogout } from '@/components/ui/icons'
+import Logo from '@/components/ui/Logo'
 
 const LINKS = [
   { href: '/menu', label: 'Menu' },
@@ -21,9 +21,7 @@ export default function UserTopNav() {
   return (
     <header className="sticky top-0 z-30 border-b border-cream-deep/70 bg-cream/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-8">
-        <Link href="/menu" className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Repeat Calories" width={38} height={38} className="rounded-xl" priority />
-        </Link>
+        <Logo />
 
         <nav className="hidden items-center gap-1 sm:flex">
           {LINKS.map((l) => {

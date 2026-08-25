@@ -1,10 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { IconChart, IconGrid, IconLogout, IconMenu, IconReceipt, IconUsers } from '@/components/ui/icons'
+import Logo from '@/components/ui/Logo'
 
 const LINKS = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: IconGrid },
@@ -22,7 +22,7 @@ export default function AdminSidebar() {
     <>
       <aside className="hidden w-60 shrink-0 flex-col bg-green-dark px-4 py-6 sm:flex">
         <Link href="/admin/dashboard" className="flex items-center gap-2 px-2">
-          <Image src="/logo.png" alt="Repeat Calories" width={34} height={34} className="rounded-xl" />
+          <Logo href={null} />
           <span className="font-display text-sm font-bold uppercase tracking-wide text-cream-soft">Admin</span>
         </Link>
 
