@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { IconChart, IconGrid, IconLogout, IconMenu, IconReceipt, IconUsers } from '@/components/ui/icons'
+import { IconBell, IconChart, IconGrid, IconLogout, IconMenu, IconReceipt, IconUsers } from '@/components/ui/icons'
 import Logo from '@/components/ui/Logo'
 
 const LINKS = [
@@ -12,6 +12,7 @@ const LINKS = [
   { href: '/admin/menu', label: 'Menu', icon: IconMenu },
   { href: '/admin/users', label: 'Users', icon: IconUsers },
   { href: '/admin/analytics', label: 'Analytics', icon: IconChart },
+  { href: '/admin/notifications', label: 'Notifications', icon: IconBell },
 ]
 
 export default function AdminSidebar() {
