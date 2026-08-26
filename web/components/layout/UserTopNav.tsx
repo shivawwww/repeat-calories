@@ -30,7 +30,7 @@ export default function UserTopNav() {
               <Link
                 key={l.href}
                 href={l.href}
-                className={`rounded-full px-4 py-2 font-display text-sm font-semibold uppercase tracking-wide transition-colors ${
+                className={`rounded-full px-4 py-2 font-display text-sm font-semibold uppercase tracking-wide transition-all active:scale-95 ${
                   active ? 'bg-green-soft text-green-dark' : 'text-ink-soft hover:bg-cream-deep/50'
                 }`}
               >
@@ -44,7 +44,7 @@ export default function UserTopNav() {
           <Link
             href="/cart"
             aria-label="Cart"
-            className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-cream-deep/50"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink transition-all active:scale-90 hover:bg-cream-deep/50"
           >
             <IconCart />
             {count > 0 && (
@@ -59,7 +59,7 @@ export default function UserTopNav() {
           <button
             onClick={() => logout()}
             aria-label="Sign out"
-            className="hidden h-10 w-10 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-cream-deep/50 sm:flex"
+            className="hidden h-10 w-10 items-center justify-center rounded-full text-ink-soft transition-all active:scale-90 hover:bg-cream-deep/50 sm:flex"
           >
             <IconLogout />
           </button>

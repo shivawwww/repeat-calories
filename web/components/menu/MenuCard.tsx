@@ -66,7 +66,7 @@ export default function MenuCard({ item }: { item: MenuItemWithOrderable }) {
             <button
               onClick={() => addItem(item.id)}
               disabled={disabled}
-              className="flex items-center gap-1.5 rounded-full bg-orange px-4 py-2 text-xs font-bold uppercase tracking-wide text-cream-soft transition-colors hover:bg-orange-dark disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex items-center gap-1.5 rounded-full bg-orange px-4 py-2 text-xs font-bold uppercase tracking-wide text-cream-soft transition-all active:scale-95 hover:bg-orange-dark disabled:cursor-not-allowed disabled:opacity-40"
             >
               <IconPlus className="h-3.5 w-3.5" /> Add
             </button>
@@ -75,7 +75,7 @@ export default function MenuCard({ item }: { item: MenuItemWithOrderable }) {
               <button
                 onClick={() => updateQty(item.id, inCart.quantity - 1)}
                 aria-label="Decrease quantity"
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-cream-soft text-green-dark shadow-sm"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-cream-soft text-green-dark shadow-sm transition-transform active:scale-90"
               >
                 <IconMinus className="h-3.5 w-3.5" />
               </button>
@@ -84,7 +84,7 @@ export default function MenuCard({ item }: { item: MenuItemWithOrderable }) {
                 onClick={() => updateQty(item.id, inCart.quantity + 1)}
                 disabled={disabled}
                 aria-label="Increase quantity"
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-cream-soft text-green-dark shadow-sm disabled:opacity-40"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-cream-soft text-green-dark shadow-sm transition-transform active:scale-90 disabled:opacity-40"
               >
                 <IconPlus className="h-3.5 w-3.5" />
               </button>

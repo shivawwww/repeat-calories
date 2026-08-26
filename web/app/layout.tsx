@@ -37,9 +37,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${display.variable} ${body.variable} h-full antialiased`}
+      className={`${display.variable} ${body.variable} antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-cream text-ink font-body">
+      <body className="min-h-dvh flex flex-col overflow-x-hidden bg-cream text-ink font-body">
         <ToastProvider>
           <SessionProviderWrapper>
             <NotificationGate>

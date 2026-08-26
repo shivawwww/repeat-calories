@@ -2,7 +2,7 @@ import Logo from '@/components/ui/Logo'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative flex min-h-screen flex-1 items-center justify-center overflow-hidden bg-cream px-4 py-10">
+    <div className="relative flex h-dvh flex-1 items-center justify-center overflow-x-hidden overflow-y-auto bg-cream px-4 py-10">
       <div
         aria-hidden
         className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-orange-soft blur-3xl"

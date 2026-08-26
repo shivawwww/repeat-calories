@@ -25,7 +25,7 @@ export default function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`relative flex flex-col items-center gap-0.5 rounded-2xl px-4 py-1.5 transition-colors ${
+              className={`relative flex flex-col items-center gap-0.5 rounded-2xl px-4 py-1.5 transition-all active:scale-90 ${
                 active ? 'text-green-dark' : 'text-ink-soft'
               }`}
             >

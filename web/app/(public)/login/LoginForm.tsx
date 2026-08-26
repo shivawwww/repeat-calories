@@ -1,14 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { signIn, getSession } from 'next-auth/react'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
-export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
-  const router = useRouter()
+export default function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -32,8 +30,14 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
       }
       return
     }
-    router.push(callbackUrl)
-    router.refresh()
+
+    // A full navigation (not router.push) so the freshly-set session cookie is
+    // guaranteed to be present on the very next request — a client-side router
+    // transition right after signIn can race the cookie and bounce back to
+    // /login?callbackUrl=... on the first click.
+    const session = await getSession()
+    const dest = callbackUrl ?? (session?.user?.is_admin ? '/admin/dashboard' : '/menu')
+    window.location.href = dest
   }
 
   return (
@@ -46,9 +50,9 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
         disabled={googleLoading}
         onClick={() => {
           setGoogleLoading(true)
-          signIn('google', { callbackUrl })
+          signIn('google', { callbackUrl: callbackUrl ?? '/menu' })
         }}
-        className="mt-6 flex w-full items-center justify-center gap-3 rounded-full border-2 border-cream-deep bg-white px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-cream disabled:opacity-60"
+        className="mt-6 flex w-full items-center justify-center gap-3 rounded-full border-2 border-cream-deep bg-white px-6 py-3 text-sm font-semibold text-ink transition-all active:scale-[0.98] hover:bg-cream disabled:opacity-60"
       >
         <svg width="18" height="18" viewBox="0 0 18 18">
           <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.62z" />

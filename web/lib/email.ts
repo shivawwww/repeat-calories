@@ -1,5 +1,6 @@
 import path from 'node:path'
 import nodemailer, { type Transporter } from 'nodemailer'
+import { v4 as uuidv4 } from 'uuid'
 
 const FROM = process.env.EMAIL_FROM ?? 'repeatcalories@gmail.com'
 const LOGO_CID = 'repeat-calories-logo'
@@ -65,6 +66,22 @@ function wrapper(bodyHtml: string): string {
 
 const LOGO_ATTACHMENT = { filename: 'logo.png', path: LOGO_PATH, cid: LOGO_CID }
 
+// A visible fallback link (not just a styled button) plus a plain-text
+// alternative and a real messageId are the highest-leverage anti-spam signals
+// available without owning a domain to authenticate SPF/DKIM/DMARC against —
+// see PLAN.md / CLAUDE.md email notes for the deliverability tradeoffs already
+// accepted for a bare @gmail.com sender.
+function fallbackLinkHtml(url: string): string {
+  return `<p style="color:#777777;font-size:12px;word-break:break-all;">If the button above doesn't work, copy and paste this link into your browser: <a href="${url}" style="color:#2D6A4F;">${url}</a></p>`
+}
+
+function sendOptions() {
+  return {
+    replyTo: FROM,
+    messageId: `<${uuidv4()}@repeatcalories.app>`,
+  }
+}
+
 export async function sendWelcomeEmail(params: {
   to: string
   name: string
@@ -79,12 +96,26 @@ export async function sendWelcomeEmail(params: {
     <p>Click below to activate your account and set your own password:</p>
     <p><a href="${activationLink}" style="background:#E87722;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">Activate Account</a></p>
     <p style="color:#777777;font-size:12px;">This link expires in 48 hours. If it expires, you can request a new one from the login page.</p>
+    ${fallbackLinkHtml(activationLink)}
   `)
+  const text = [
+    `Welcome, ${name}!`,
+    '',
+    `Your Repeat Calories account has been created. Your temporary password is: ${tempPassword}`,
+    '',
+    `Activate your account: ${activationLink}`,
+    '',
+    'This link expires in 48 hours. If it expires, you can request a new one from the login page.',
+    '',
+    'Repeat Calories · Coimbatore',
+  ].join('\n')
   return getTransporter().sendMail({
+    ...sendOptions(),
     from: `Repeat Calories <${FROM}>`,
     to,
     subject: 'Welcome to Repeat Calories — Activate your account',
     html,
+    text,
     attachments: [LOGO_ATTACHMENT],
   })
 }
@@ -96,12 +127,26 @@ export async function sendResetPasswordEmail(params: { to: string; name: string;
     <p>Hi ${name}, we received a request to reset your Repeat Calories password.</p>
     <p><a href="${resetLink}" style="background:#E87722;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">Reset Password</a></p>
     <p style="color:#777777;font-size:12px;">This link expires in 1 hour. If you didn't request this, you can ignore this email.</p>
+    ${fallbackLinkHtml(resetLink)}
   `)
+  const text = [
+    `Reset your password`,
+    '',
+    `Hi ${name}, we received a request to reset your Repeat Calories password.`,
+    '',
+    `Reset it here: ${resetLink}`,
+    '',
+    "This link expires in 1 hour. If you didn't request this, you can ignore this email.",
+    '',
+    'Repeat Calories · Coimbatore',
+  ].join('\n')
   return getTransporter().sendMail({
+    ...sendOptions(),
     from: `Repeat Calories <${FROM}>`,
     to,
     subject: 'Reset your Repeat Calories password',
     html,
+    text,
     attachments: [LOGO_ATTACHMENT],
   })
 }

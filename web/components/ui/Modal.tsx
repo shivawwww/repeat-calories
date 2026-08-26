@@ -38,7 +38,7 @@ export default function Modal({
             <button
               onClick={onClose}
               aria-label="Close"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-ink-soft hover:bg-cream-deep"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-ink-soft transition-transform active:scale-90 hover:bg-cream-deep"
             >
               ✕
             </button>

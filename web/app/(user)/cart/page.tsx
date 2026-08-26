@@ -53,7 +53,7 @@ export default function CartPage() {
                 <button
                   onClick={() => updateQty(item.menu_item_id, item.quantity - 1)}
                   aria-label="Decrease quantity"
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-cream-soft text-green-dark shadow-sm"
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-cream-soft text-green-dark shadow-sm transition-transform active:scale-90"
                 >
                   <IconMinus className="h-3.5 w-3.5" />
                 </button>
@@ -61,7 +61,7 @@ export default function CartPage() {
                 <button
                   onClick={() => updateQty(item.menu_item_id, item.quantity + 1)}
                   aria-label="Increase quantity"
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-cream-soft text-green-dark shadow-sm"
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-cream-soft text-green-dark shadow-sm transition-transform active:scale-90"
                 >
                   <IconPlus className="h-3.5 w-3.5" />
                 </button>
@@ -69,7 +69,7 @@ export default function CartPage() {
               <button
                 onClick={() => removeItem(item.menu_item_id)}
                 aria-label="Remove item"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-red-soft hover:text-red"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink-soft transition-all active:scale-90 hover:bg-red-soft hover:text-red"
               >
                 <IconTrash />
               </button>

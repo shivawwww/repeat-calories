@@ -52,7 +52,7 @@ export default async function LandingPage() {
           {user ? (
             <Link
               href="/menu"
-              className="rounded-full bg-green px-5 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-cream-soft transition-colors hover:bg-green-dark"
+              className="rounded-full bg-green px-5 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-cream-soft transition-all active:scale-95 hover:bg-green-dark"
             >
               Menu
             </Link>
@@ -60,13 +60,13 @@ export default async function LandingPage() {
             <>
               <Link
                 href="/login"
-                className="rounded-full px-4 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-ink transition-colors hover:bg-cream-deep/60"
+                className="rounded-full px-4 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-ink transition-all active:scale-95 hover:bg-cream-deep/60"
               >
                 Sign In
               </Link>
               <Link
                 href="/signup"
-                className="rounded-full bg-orange px-5 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-cream-soft transition-colors hover:bg-orange-dark"
+                className="rounded-full bg-orange px-5 py-2.5 font-display text-sm font-semibold uppercase tracking-wide text-cream-soft transition-all active:scale-95 hover:bg-orange-dark"
               >
                 Sign Up
               </Link>

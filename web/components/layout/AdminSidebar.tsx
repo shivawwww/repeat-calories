@@ -33,7 +33,7 @@ export default function AdminSidebar() {
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-colors ${
+                className={`flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-all active:scale-95 ${
                   active ? 'bg-cream-soft text-green-dark' : 'text-cream-soft/80 hover:bg-white/10'
                 }`}
               >
@@ -46,7 +46,7 @@ export default function AdminSidebar() {
 
         <button
           onClick={() => logout()}
-          className="mt-4 flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold text-cream-soft/70 transition-colors hover:bg-white/10"
+          className="mt-4 flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold text-cream-soft/70 transition-all active:scale-95 hover:bg-white/10"
         >
           <IconLogout className="h-5 w-5" /> Sign Out
         </button>
@@ -59,7 +59,7 @@ export default function AdminSidebar() {
             <Link
               key={href}
               href={href}
-              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition-colors ${
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition-all active:scale-90 ${
                 active ? 'bg-cream-soft text-green-dark' : 'text-cream-soft/80'
               }`}
             >
@@ -68,7 +68,7 @@ export default function AdminSidebar() {
             </Link>
           )
         })}
-        <button onClick={() => logout()} className="ml-1 flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold text-cream-soft/70">
+        <button onClick={() => logout()} className="ml-1 flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold text-cream-soft/70 transition-transform active:scale-90">
           <IconLogout className="h-4 w-4" />
         </button>
       </nav>

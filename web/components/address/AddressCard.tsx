@@ -24,7 +24,7 @@ export default function AddressCard({
   return (
     <div
       onClick={onSelect}
-      className={`relative rounded-3xl border-2 p-4 transition-colors ${
+      className={`relative rounded-3xl border-2 p-4 transition-all active:scale-[0.99] ${
         selected ? 'border-green bg-green-soft/60' : 'border-cream-deep bg-cream-soft'
       } ${selectable ? 'cursor-pointer' : ''}`}
     >
@@ -51,17 +51,17 @@ export default function AddressCard({
       {(onEdit || onDelete || onSetDefault) && (
         <div className="mt-3 flex gap-4 text-xs font-bold uppercase tracking-wide">
           {onEdit && (
-            <button onClick={(e) => { e.stopPropagation(); onEdit() }} className="text-green hover:underline">
+            <button onClick={(e) => { e.stopPropagation(); onEdit() }} className="text-green transition-transform active:scale-90 hover:underline">
               Edit
             </button>
           )}
           {!address.is_default && onSetDefault && (
-            <button onClick={(e) => { e.stopPropagation(); onSetDefault() }} className="text-green hover:underline">
+            <button onClick={(e) => { e.stopPropagation(); onSetDefault() }} className="text-green transition-transform active:scale-90 hover:underline">
               Set Default
             </button>
           )}
           {onDelete && (
-            <button onClick={(e) => { e.stopPropagation(); onDelete() }} className="text-red hover:underline">
+            <button onClick={(e) => { e.stopPropagation(); onDelete() }} className="text-red transition-transform active:scale-90 hover:underline">
               Delete
             </button>
           )}

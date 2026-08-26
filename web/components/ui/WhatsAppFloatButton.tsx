@@ -7,18 +7,9 @@ export default function WhatsAppFloatButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"
+      className="fixed right-4 bottom-24 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-transform active:scale-90 sm:right-5 sm:bottom-5"
       style={{
-        position: 'fixed',
-        bottom: 20,
-        right: 20,
-        zIndex: 40,
-        width: 56,
-        height: 56,
-        borderRadius: '50%',
         background: '#25D366',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
       }}
     >
