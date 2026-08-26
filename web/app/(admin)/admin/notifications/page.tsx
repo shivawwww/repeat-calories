@@ -11,8 +11,10 @@ import { User } from '@/types/models'
 
 type Target = 'all' | 'user'
 
+type UserWithDeviceCount = User & { fcmTokenCount: number }
+
 export default function AdminNotificationsPage() {
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<UserWithDeviceCount[]>([])
   const [loadingUsers, setLoadingUsers] = useState(true)
 
   const [target, setTarget] = useState<Target>('all')
@@ -28,12 +30,12 @@ export default function AdminNotificationsPage() {
 
   useEffect(() => {
     api
-      .get<(User & { _id: string })[]>('/api/admin/users/getall')
+      .get<(UserWithDeviceCount & { _id: string })[]>('/api/admin/users/getall')
       .then(({ obj }) => setUsers(withIds(obj)))
       .finally(() => setLoadingUsers(false))
   }, [])
 
-  const notifiable = useMemo(() => users.filter((u) => (u.fcmTokens?.length ?? 0) > 0), [users])
+  const notifiable = useMemo(() => users.filter((u) => u.fcmTokenCount > 0), [users])
   const q = query.trim().toLowerCase()
   const filteredUsers = q
     ? notifiable.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
