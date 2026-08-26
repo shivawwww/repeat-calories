@@ -1,32 +1,26 @@
+import fs from 'node:fs'
 import path from 'node:path'
-import nodemailer, { type Transporter } from 'nodemailer'
+import { Resend } from 'resend'
 import { v4 as uuidv4 } from 'uuid'
 
-const FROM = process.env.EMAIL_FROM ?? 'repeatcalories@gmail.com'
+const FROM = process.env.EMAIL_FROM ?? 'orders@repeatcalories.com'
 const LOGO_CID = 'repeat-calories-logo'
 const LOGO_PATH = path.join(process.cwd(), 'public', 'logo.png')
 
-let transporter: Transporter | undefined
+let resend: Resend | undefined
 // Lazily created on first send (not at module-load) so `next build`'s page-data
-// collection — which imports every route module — doesn't require real credentials.
-function getTransporter(): Transporter {
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_APP_PASSWORD,
-      },
-    })
+// collection — which imports every route module — doesn't require a real API key.
+function getResend(): Resend {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY)
   }
-  return transporter
+  return resend
 }
 
 // Table-based layout (not flexbox/grid) and inline styles throughout — Outlook
 // desktop renders email HTML with Word's engine, which ignores most modern CSS.
 // The logo is a cid: inline attachment rather than a remote <img src>, so it
-// renders immediately without the recipient needing to approve "show images",
-// and works identically whether or not the app is deployed yet.
+// renders immediately without the recipient needing to approve "show images".
 function wrapper(bodyHtml: string): string {
   return `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5EFE7;padding:32px 16px;">
@@ -64,13 +58,12 @@ function wrapper(bodyHtml: string): string {
   </table>`
 }
 
-const LOGO_ATTACHMENT = { filename: 'logo.png', path: LOGO_PATH, cid: LOGO_CID }
+const LOGO_ATTACHMENT = {
+  filename: 'logo.png',
+  content: fs.readFileSync(LOGO_PATH).toString('base64'),
+  contentId: LOGO_CID,
+}
 
-// A visible fallback link (not just a styled button) plus a plain-text
-// alternative and a real messageId are the highest-leverage anti-spam signals
-// available without owning a domain to authenticate SPF/DKIM/DMARC against —
-// see PLAN.md / CLAUDE.md email notes for the deliverability tradeoffs already
-// accepted for a bare @gmail.com sender.
 function fallbackLinkHtml(url: string): string {
   return `<p style="color:#777777;font-size:12px;word-break:break-all;">If the button above doesn't work, copy and paste this link into your browser: <a href="${url}" style="color:#2D6A4F;">${url}</a></p>`
 }
@@ -78,7 +71,7 @@ function fallbackLinkHtml(url: string): string {
 function sendOptions() {
   return {
     replyTo: FROM,
-    messageId: `<${uuidv4()}@repeatcalories.app>`,
+    headers: { 'X-Entity-Ref-ID': uuidv4() },
   }
 }
 
@@ -109,7 +102,7 @@ export async function sendWelcomeEmail(params: {
     '',
     'Repeat Calories · Coimbatore',
   ].join('\n')
-  return getTransporter().sendMail({
+  return getResend().emails.send({
     ...sendOptions(),
     from: `Repeat Calories <${FROM}>`,
     to,
@@ -140,7 +133,7 @@ export async function sendResetPasswordEmail(params: { to: string; name: string;
     '',
     'Repeat Calories · Coimbatore',
   ].join('\n')
-  return getTransporter().sendMail({
+  return getResend().emails.send({
     ...sendOptions(),
     from: `Repeat Calories <${FROM}>`,
     to,

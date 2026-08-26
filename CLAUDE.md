@@ -20,7 +20,7 @@ Assets are in `/assets/` — logo PNG, product photos, meal nutrition Excel.
 - **Auth:** NextAuth.js (Auth.js v5) — Google OAuth + Credentials (bcrypt) provider, JWT session strategy. JWT sent on every request; logged-out/invalid session blocked on all non-public routes and APIs. No roles — just `is_admin: true/false` on user doc.
 - **Signup flow:** name/email/mobile only (no password field) → account created `is_active: false` → welcome email sent with system-generated temp password + activation link → user activates (enters temp password + sets real password) → `is_active: true` → session issued → `/menu`. Google sign-ups skip activation entirely (`is_active: true` immediately, since Google verified the email).
 - **Forgot password vs. update password are separate flows:** forgot (logged-out, token via emailed link, no old password needed) vs. update (profile page, logged-in, requires current password).
-- **Email:** Gmail SMTP via Nodemailer (`lib/email.ts`), sent from `repeatcalories@gmail.com` using a Gmail app password (`EMAIL_USER` + `EMAIL_APP_PASSWORD` in `.env.local`). **Switched from the originally-planned Resend on 2026-08-25** — Resend sends via its HTTP API and requires verifying a DNS-owned domain before it can send from an address at that domain, which ruled out sending from a bare `@gmail.com` address without buying a custom domain; Gmail SMTP works immediately with the app password the user already had. Gmail's ~500 email/day cap is an accepted tradeoff for now — revisit if volume grows. `EMAIL_FROM` still drives the visible from-address and is independent of any future custom domain (adding one later does NOT affect existing Google-signed-in users; matching is by Google account ID/email, not app domain — see PLAN.md §16).
+- **Email:** Resend (`lib/email.ts`), sent from `orders@repeatcalories.com`, API key in `RESEND_API_KEY` (`.env.local`). **Switched back to Resend on 2026-08-26** — the domain `repeatcalories.com` is now owned and connected to Vercel, which removes the blocker that had ruled Resend out on 2026-08-25 (it requires a DNS-owned domain to verify before sending from an address at that domain). Domain must be verified in the Resend dashboard (Domains → Add Domain → add the DKIM/SPF DNS records it generates) before sending works. `EMAIL_FROM` drives the visible from-address and is independent of Google sign-in (matching is by Google account ID/email, not app domain — see PLAN.md §16).
 - **Push notifications: Firebase Cloud Messaging (FCM), mandatory.** Pattern ported from `D:\Shiva_workspace\git\couples-app` ("Snug") — PWA manifest + service worker (served via `/api/firebase-sw` rewritten to `/firebase-messaging-sw.js`) + a `NotificationGate` component that full-screen blocks the app (except `/login`, `/signup`, `/activate`, `/forgot`, `/reset-password`) until `Notification.permission === "granted"`. Re-checked on every login and tab-focus — this alone covers "new device" with no separate device-tracking needed. Token stored in `users.fcmTokens[]` (array, dedup'd, multi-device). Admin uses the identical mechanism (just `is_admin:true` on a user doc). iOS Safari cannot receive push unless the site is added to the home screen first (Apple platform limit) — hence the PWA requirement. See PLAN.md §17.
 - **Timezone: everything captured in `Asia/Kolkata` (Chennai/IST, UTC+5:30)** — all `created_at`/`updated_at`/token-expiry timestamps across every collection, via `lib/datetime.ts`, not raw UTC. See PLAN.md §18.
 - **Same-day order cutoffs:** lunch orderable only before 10:00 AM IST, dinner only before 4:00 PM IST — enforced client + server side. See PLAN.md §19.
@@ -166,7 +166,7 @@ Then build modules in this order:
 2. `.env.local` — config values
 3. `lib/auth.ts` — NextAuth config (Google + Credentials providers, JWT session)
 4. `lib/password.ts` — bcrypt helpers, temp-password + token generation
-5. `lib/email.ts` — Nodemailer (Gmail SMTP), welcome/activation + reset templates
+5. `lib/email.ts` — Resend, welcome/activation + reset templates
 6. `app/api/auth/` — `[...nextauth]`, signup, activate, resend-activation, forgotpassword, reset-password, updatepassword
 7. `lib/datetime.ts` — Asia/Kolkata timestamp helpers, used for every write from here on
 8. `app/api/address/` — add, update, remove, set_default (all update user doc)
@@ -192,9 +192,8 @@ NEXTAUTH_URL=http://localhost:3000
 JWT_EXPIRY_HOURS=72
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-EMAIL_USER=repeatcalories@gmail.com
-EMAIL_APP_PASSWORD=
-EMAIL_FROM=repeatcalories@gmail.com
+RESEND_API_KEY=
+EMAIL_FROM=orders@repeatcalories.com
 RAZORPAY_KEY_ID=rzp_test_...
 RAZORPAY_KEY_SECRET=
 RAZORPAY_WEBHOOK_SECRET=
