@@ -11,7 +11,7 @@ export async function GET() {
     .sort({ sort_order: 1 })
     .toArray()
 
-  const withOrderable = items.map((item) => ({ ...item, orderable: isCategoryOrderable(item.category) }))
+  const withOrderable = items.map((item) => ({ ...item, orderable: item.meal_times.some(isCategoryOrderable) }))
 
   return success('Featured items fetched', withOrderable, { count: withOrderable.length })
 }

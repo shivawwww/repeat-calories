@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { api, withIds } from '@/lib/api'
-import MenuCard, { MenuItemWithOrderable } from '@/components/menu/MenuCard'
+import MenuCard from '@/components/menu/MenuCard'
 import CategoryTabs from '@/components/menu/CategoryTabs'
 import Skeleton from '@/components/ui/Skeleton'
 import { IconSearch } from '@/components/ui/icons'
+import { isCategoryOrderable } from '@/lib/orderCutoff'
+import { MenuItem } from '@/types/models'
 
 const CATEGORY_ORDER = ['Lunch', 'Dinner', 'Breakfast', 'Snacks', 'Beverages']
 const CUTOFF_NOTE: Record<string, string> = {
@@ -14,18 +16,18 @@ const CUTOFF_NOTE: Record<string, string> = {
 }
 
 export default function MenuPage() {
-  const [items, setItems] = useState<MenuItemWithOrderable[]>([])
+  const [items, setItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string>('')
 
   useEffect(() => {
     api
-      .get<(MenuItemWithOrderable & { _id: string })[]>('/api/menu/getall')
+      .get<(MenuItem & { _id: string })[]>('/api/menu/getall')
       .then(({ obj }) => {
         const normalized = withIds(obj)
         setItems(normalized)
-        const cats = Array.from(new Set(normalized.map((i) => i.category)))
+        const cats = Array.from(new Set(normalized.flatMap((i) => i.meal_times)))
         cats.sort((a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b))
         if (cats.length) setCategory(cats[0])
       })
@@ -33,19 +35,26 @@ export default function MenuPage() {
   }, [])
 
   const categories = useMemo(() => {
-    const cats = Array.from(new Set(items.map((i) => i.category)))
+    const cats = Array.from(new Set(items.flatMap((i) => i.meal_times)))
     cats.sort((a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b))
     return cats
   }, [items])
 
-  const featured = useMemo(() => items.filter((i) => i.is_featured), [items])
+  const orderable = isCategoryOrderable(category)
+
+  // A featured item can be tagged for more than one meal time — show it as
+  // orderable as long as at least one of those meal times is currently open.
+  const featured = useMemo(
+    () => items.filter((i) => i.is_featured).map((i) => ({ ...i, orderable: i.meal_times.some(isCategoryOrderable) })),
+    [items]
+  )
 
   const visible = useMemo(() => {
-    const byCategory = items.filter((i) => i.category === category)
+    const byCategory = items.filter((i) => i.meal_times.includes(category)).map((i) => ({ ...i, orderable }))
     if (!query.trim()) return byCategory
     const q = query.trim().toLowerCase()
     return byCategory.filter((i) => i.name.toLowerCase().includes(q) || i.description.toLowerCase().includes(q))
-  }, [items, category, query])
+  }, [items, category, query, orderable])
 
   return (
     <div className="pb-6">
@@ -81,7 +90,7 @@ export default function MenuPage() {
         <CategoryTabs categories={categories} active={category} onChange={setCategory} />
         {CUTOFF_NOTE[category] && (
           <p className="mt-3 text-xs font-medium text-ink-soft">
-            {items.some((i) => i.category === category && !i.orderable) ? '⏰ ' : '🕓 '}
+            {orderable ? '🕓 ' : '⏰ '}
             {CUTOFF_NOTE[category]}
           </p>
         )}

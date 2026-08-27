@@ -11,10 +11,10 @@ export async function POST(req: NextRequest) {
   if (!admin) return fail('Unauthorized', 403)
 
   const body = await req.json().catch(() => null)
-  const { name, description, category, price, image_url, nutrition, is_featured, sort_order } = body ?? {}
+  const { name, description, meal_times, price, images, nutrition, is_featured, sort_order } = body ?? {}
 
-  if (!name || !category || price === undefined) {
-    return fail('name, category and price are required', 400)
+  if (!name || !Array.isArray(meal_times) || meal_times.length === 0 || price === undefined) {
+    return fail('name, at least one meal_time and price are required', 400)
   }
 
   const db = await getDb()
@@ -22,9 +22,9 @@ export async function POST(req: NextRequest) {
     _id: uuidv4(),
     name,
     description: description ?? '',
-    category,
+    meal_times,
     price,
-    image_url: image_url ?? '',
+    images: Array.isArray(images) ? images : [],
     nutrition: nutrition ?? { protein_g: 0, carbs_g: 0, fibre_g: 0, calories: 0 },
     is_available: true,
     is_featured: !!is_featured,

@@ -44,13 +44,24 @@ export interface MenuItemDoc {
   _id: string
   name: string
   description: string
-  category: string
+  meal_times: string[]
   price: number
-  image_url: string
+  images: string[]
   nutrition: NutritionDoc
   is_available: boolean
   is_featured: boolean
   sort_order?: number
+  created_at: string
+}
+
+// Compressed image bytes stored directly in Mongo — served back out via
+// GET /api/menu/image/[id]. Kept in its own collection (not embedded in
+// MenuItemDoc) so listing menu items never has to ship image bytes as JSON.
+export interface MenuItemImageDoc {
+  _id: string
+  mime_type: string
+  data: Buffer
+  size: number
   created_at: string
 }
 

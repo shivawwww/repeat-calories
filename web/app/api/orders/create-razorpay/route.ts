@@ -50,8 +50,9 @@ export async function POST(req: NextRequest) {
     if (!menuItem || !menuItem.is_available) {
       return fail(`"${cartItem.name}" is no longer available. Please remove it from your cart.`, 400)
     }
-    if (!isCategoryOrderable(menuItem.category)) {
-      return fail(cutoffMessage(menuItem.category) ?? `${menuItem.category} is not orderable right now`, 400)
+    if (!menuItem.meal_times.some(isCategoryOrderable)) {
+      const closedFor = menuItem.meal_times.find((t) => !isCategoryOrderable(t)) ?? menuItem.meal_times[0]
+      return fail(cutoffMessage(closedFor) ?? `${menuItem.name} is not orderable right now`, 400)
     }
     orderItems.push({
       menu_item_id: menuItem._id,

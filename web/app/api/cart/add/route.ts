@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       name: menuItem.name,
       price: menuItem.price,
       quantity,
-      image_url: menuItem.image_url,
+      image_url: menuItem.images[0] ?? '/meals/placeholder.jpg',
     })
   }
 

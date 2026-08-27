@@ -38,9 +38,9 @@ export interface MenuItem {
   id: string
   name: string
   description: string
-  category: MenuCategory | string
+  meal_times: (MenuCategory | string)[]
   price: number
-  image_url: string
+  images: string[]
   nutrition: Nutrition
   is_available: boolean
   is_featured: boolean

@@ -1,12 +1,17 @@
+'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import Image from 'next/image'
+import { api, ApiError } from '@/lib/api'
 import Button from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
+import { useToast } from '@/components/ui/Toast'
 import { MenuItem } from '@/types/models'
 
 export type MenuItemFormValues = Omit<MenuItem, 'id' | 'is_available'>
 
-const CATEGORIES = ['Lunch', 'Dinner', 'Breakfast', 'Snacks', 'Beverages']
+const MEAL_TIMES = ['Lunch', 'Dinner', 'Breakfast', 'Snacks', 'Beverages']
+const MAX_IMAGES = 6
 
 export default function MenuItemForm({
   initial,
@@ -19,25 +24,69 @@ export default function MenuItemForm({
   onCancel?: () => void
   submitting?: boolean
 }) {
+  const { show } = useToast()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const [name, setName] = useState(initial?.name ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
-  const [category, setCategory] = useState(initial?.category ?? 'Lunch')
+  const [mealTimes, setMealTimes] = useState<string[]>(initial?.meal_times ?? ['Lunch'])
   const [price, setPrice] = useState(initial?.price ?? 0)
-  const [imageUrl, setImageUrl] = useState(initial?.image_url ?? '/meals/placeholder.jpg')
+  const [images, setImages] = useState<string[]>(initial?.images ?? [])
+  const [uploading, setUploading] = useState(false)
   const [isFeatured, setIsFeatured] = useState(initial?.is_featured ?? false)
   const [protein, setProtein] = useState(initial?.nutrition?.protein_g ?? 0)
   const [carbs, setCarbs] = useState(initial?.nutrition?.carbs_g ?? 0)
   const [fibre, setFibre] = useState(initial?.nutrition?.fibre_g ?? 0)
   const [calories, setCalories] = useState(initial?.nutrition?.calories ?? 0)
 
+  function toggleMealTime(time: string) {
+    setMealTimes((prev) => (prev.includes(time) ? prev.filter((t) => t !== time) : [...prev, time]))
+  }
+
+  async function handleFiles(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) return
+    const files = Array.from(fileList).slice(0, MAX_IMAGES - images.length)
+    if (files.length === 0) {
+      show(`You can add up to ${MAX_IMAGES} images`, 'error')
+      return
+    }
+
+    setUploading(true)
+    try {
+      for (const file of files) {
+        const formData = new FormData()
+        formData.append('file', file)
+        const { obj } = await api.upload<{ id: string; url: string }>('/api/admin/menu/upload-image', formData)
+        setImages((prev) => [...prev, obj.url])
+      }
+    } catch (e) {
+      show(e instanceof ApiError ? e.message : 'Could not upload image', 'error')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  function removeImage(url: string) {
+    setImages((prev) => prev.filter((u) => u !== url))
+    if (url.startsWith('/api/menu/image/')) {
+      const id = url.split('/').pop()
+      if (id) api.del('/api/admin/menu/delete-image', { id }).catch(() => {})
+    }
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (mealTimes.length === 0) {
+      show('Pick at least one of Lunch / Dinner / Breakfast / Snacks / Beverages', 'error')
+      return
+    }
     onSubmit({
       name,
       description,
-      category,
+      meal_times: mealTimes,
       price,
-      image_url: imageUrl,
+      images,
       is_featured: isFeatured,
       sort_order: initial?.sort_order ?? 0,
       nutrition: { protein_g: protein, carbs_g: carbs, fibre_g: fibre, calories },
@@ -49,25 +98,74 @@ export default function MenuItemForm({
       <Input label="Name" required value={name} onChange={(e) => setName(e.target.value)} />
       <Textarea label="Description" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Category</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full rounded-2xl border-2 border-cream-deep bg-cream-soft px-4 py-3 text-sm text-ink outline-none focus:border-green"
-          >
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+      <div>
+        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-soft">Available for</p>
+        <div className="flex flex-wrap gap-2">
+          {MEAL_TIMES.map((t) => {
+            const active = mealTimes.includes(t)
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => toggleMealTime(t)}
+                className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide transition-colors ${
+                  active ? 'bg-green text-cream-soft' : 'bg-cream-deep/60 text-ink-soft hover:bg-cream-deep'
+                }`}
+              >
+                {t}
+              </button>
+            )
+          })}
         </div>
-        <Input label="Price (₹)" type="number" min={0} required value={price} onChange={(e) => setPrice(Number(e.target.value))} />
+        <p className="mt-1.5 text-xs text-ink-soft">Pick both Lunch and Dinner if the same dish is sold at both times — no need to add it twice.</p>
       </div>
 
-      <Input label="Image URL" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} hint="/meals/placeholder.jpg or a full https URL" />
+      <Input label="Price (₹)" type="number" min={0} required value={price} onChange={(e) => setPrice(Number(e.target.value))} />
+
+      <div>
+        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-soft">Photos</p>
+        <div className="flex flex-wrap gap-2.5">
+          {images.map((url) => (
+            <div key={url} className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-cream-deep bg-cream-deep/40">
+              <Image src={url} alt="" fill className="object-cover" />
+              <button
+                type="button"
+                onClick={() => removeImage(url)}
+                aria-label="Remove image"
+                className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-ink/60 text-[10px] font-bold text-cream-soft"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          {images.length < MAX_IMAGES && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="flex h-20 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-cream-deep text-ink-soft transition-colors hover:border-green hover:text-green disabled:opacity-50"
+            >
+              {uploading ? (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : (
+                <>
+                  <span className="text-lg leading-none">+</span>
+                  <span className="text-[10px] font-bold uppercase">Add</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => handleFiles(e.target.files)}
+        />
+        <p className="mt-1.5 text-xs text-ink-soft">First photo is the cover shown on the menu. Up to {MAX_IMAGES} photos.</p>
+      </div>
 
       <div>
         <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-soft">Nutrition (per serving)</p>
@@ -90,7 +188,7 @@ export default function MenuItemForm({
             Cancel
           </Button>
         )}
-        <Button type="submit" className="flex-1" loading={submitting}>
+        <Button type="submit" className="flex-1" loading={submitting} disabled={uploading}>
           Save Item
         </Button>
       </div>

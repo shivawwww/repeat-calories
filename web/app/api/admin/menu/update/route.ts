@@ -15,9 +15,9 @@ export async function PUT(req: NextRequest) {
   const allowedFields = [
     'name',
     'description',
-    'category',
+    'meal_times',
     'price',
-    'image_url',
+    'images',
     'nutrition',
     'is_featured',
     'sort_order',

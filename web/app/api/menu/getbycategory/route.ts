@@ -11,11 +11,12 @@ export async function GET(req: NextRequest) {
   const db = await getDb()
   const items = await db
     .collection<MenuItemDoc>('menu_items')
-    .find({ is_available: true, category })
+    .find({ is_available: true, meal_times: category })
     .sort({ sort_order: 1 })
     .toArray()
 
-  const withOrderable = items.map((item) => ({ ...item, orderable: isCategoryOrderable(item.category) }))
+  const orderable = isCategoryOrderable(category)
+  const withOrderable = items.map((item) => ({ ...item, orderable }))
 
   return success('Menu items fetched', withOrderable, { count: withOrderable.length })
 }

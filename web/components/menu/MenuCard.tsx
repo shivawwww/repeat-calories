@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import { useCart } from '@/hooks/useCart'
 import { IconPlus, IconMinus } from '@/components/ui/icons'
@@ -23,12 +24,14 @@ export default function MenuCard({ item }: { item: MenuItemWithOrderable }) {
   const { items, addItem, updateQty } = useCart()
   const inCart = items.find((i) => i.menu_item_id === item.id)
   const disabled = !item.orderable
+  const images = item.images.length > 0 ? item.images : ['/meals/placeholder.jpg']
+  const [activeImg, setActiveImg] = useState(0)
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-3xl border border-cream-deep bg-cream-soft shadow-sm shadow-ink/5 transition-shadow hover:shadow-md">
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-cream-deep/40">
         <Image
-          src={item.image_url || '/meals/placeholder.jpg'}
+          src={images[activeImg]}
           alt={item.name}
           fill
           sizes="(max-width: 640px) 50vw, 280px"
@@ -45,6 +48,40 @@ export default function MenuCard({ item }: { item: MenuItemWithOrderable }) {
               Closed for today
             </span>
           </div>
+        )}
+        {images.length > 1 && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous image"
+              onClick={(e) => {
+                e.preventDefault()
+                setActiveImg((i) => (i - 1 + images.length) % images.length)
+              }}
+              className="absolute left-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-ink/40 text-cream-soft opacity-0 transition-opacity group-hover:opacity-100"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              aria-label="Next image"
+              onClick={(e) => {
+                e.preventDefault()
+                setActiveImg((i) => (i + 1) % images.length)
+              }}
+              className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-ink/40 text-cream-soft opacity-0 transition-opacity group-hover:opacity-100"
+            >
+              ›
+            </button>
+            <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1">
+              {images.map((_, idx) => (
+                <span
+                  key={idx}
+                  className={`h-1.5 w-1.5 rounded-full transition-colors ${idx === activeImg ? 'bg-cream-soft' : 'bg-cream-soft/40'}`}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
 

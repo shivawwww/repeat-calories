@@ -66,21 +66,19 @@ async function main() {
   const docs = []
   let sortOrder = 1
   for (const meal of meals) {
-    for (const category of ['Lunch', 'Dinner']) {
-      docs.push({
-        _id: randomUUID(),
-        name: meal.name,
-        description: meal.ingredients.join(', '),
-        category,
-        price: PLACEHOLDER_PRICE,
-        image_url: '/meals/placeholder.jpg',
-        nutrition: meal.nutrition ?? { protein_g: 0, carbs_g: 0, fibre_g: 0, calories: 0 },
-        is_available: true,
-        is_featured: sortOrder <= 2, // first couple of meals featured by default
-        sort_order: sortOrder++,
-        created_at: new Date().toISOString(),
-      })
-    }
+    docs.push({
+      _id: randomUUID(),
+      name: meal.name,
+      description: meal.ingredients.join(', '),
+      meal_times: ['Lunch', 'Dinner'], // sold at both — one document, not a duplicate per meal time
+      price: PLACEHOLDER_PRICE,
+      images: ['/meals/placeholder.jpg'],
+      nutrition: meal.nutrition ?? { protein_g: 0, carbs_g: 0, fibre_g: 0, calories: 0 },
+      is_available: true,
+      is_featured: sortOrder <= 2, // first couple of meals featured by default
+      sort_order: sortOrder++,
+      created_at: new Date().toISOString(),
+    })
   }
 
   if (docs.length === 0) {
@@ -90,7 +88,7 @@ async function main() {
   }
 
   await db.collection('menu_items').insertMany(docs)
-  console.log(`Seeded ${docs.length} menu items (${meals.length} meals x 2 categories).`)
+  console.log(`Seeded ${docs.length} menu items.`)
   console.log(`All prices set to placeholder ₹${PLACEHOLDER_PRICE} — update real prices via the admin panel.`)
 
   await client.close()

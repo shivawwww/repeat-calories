@@ -95,12 +95,16 @@ export default function AdminMenuPage() {
           {items.map((item) => (
             <div key={item.id} className="flex items-center gap-4 rounded-3xl border border-cream-deep bg-cream-soft p-4">
               <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-cream-deep/40">
-                <Image src={item.image_url || '/meals/placeholder.jpg'} alt={item.name} fill className="object-cover" />
+                <Image src={item.images[0] || '/meals/placeholder.jpg'} alt={item.name} fill className="object-cover" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <p className="truncate font-display text-sm font-semibold text-ink">{item.name}</p>
-                  <Badge tone="neutral">{item.category}</Badge>
+                  {item.meal_times.map((t) => (
+                    <Badge key={t} tone="neutral">
+                      {t}
+                    </Badge>
+                  ))}
                   {item.is_featured && <Badge tone="orange">Featured</Badge>}
                 </div>
                 <p className="mt-0.5 text-xs text-ink-soft">

@@ -8,7 +8,7 @@ export async function GET() {
   if (!admin) return fail('Unauthorized', 403)
 
   const db = await getDb()
-  const items = await db.collection<MenuItemDoc>('menu_items').find({}).sort({ category: 1, sort_order: 1 }).toArray()
+  const items = await db.collection<MenuItemDoc>('menu_items').find({}).sort({ sort_order: 1 }).toArray()
 
   return success('Menu items fetched', items, { count: items.length })
 }

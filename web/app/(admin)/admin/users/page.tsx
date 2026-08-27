@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { api, withIds } from '@/lib/api'
+import { api, withIds, ApiError } from '@/lib/api'
 import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
 import Skeleton from '@/components/ui/Skeleton'
 import { formatIST } from '@/lib/datetime'
 import { User } from '@/types/models'
@@ -12,6 +13,8 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
+  const [resendingId, setResendingId] = useState<string | null>(null)
+  const [resendResult, setResendResult] = useState<{ id: string; ok: boolean; message: string } | null>(null)
 
   useEffect(() => {
     api
@@ -19,6 +22,19 @@ export default function AdminUsersPage() {
       .then(({ obj }) => setUsers(withIds(obj)))
       .finally(() => setLoading(false))
   }, [])
+
+  async function handleResendActivation(id: string) {
+    setResendingId(id)
+    setResendResult(null)
+    try {
+      const { message } = await api.post(`/api/admin/users/${id}/resend-activation`)
+      setResendResult({ id, ok: true, message })
+    } catch (e) {
+      setResendResult({ id, ok: false, message: e instanceof ApiError ? e.message : 'Failed to resend. Try again.' })
+    } finally {
+      setResendingId(null)
+    }
+  }
 
   const q = query.trim().toLowerCase()
   const filtered = q
@@ -54,6 +70,7 @@ export default function AdminUsersPage() {
                 <th className="px-5 py-3">Status</th>
                 <th className="px-5 py-3">Addresses</th>
                 <th className="px-5 py-3">Joined</th>
+                <th className="px-5 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-cream-deep">
@@ -77,6 +94,26 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-5 py-3 text-ink-soft">{u.addresses?.length ?? 0}</td>
                   <td className="px-5 py-3 text-ink-soft">{formatIST(u.created_at, 'DD MMM YYYY')}</td>
+                  <td className="px-5 py-3">
+                    {u.auth_provider === 'credentials' && !u.is_active && (
+                      <div className="flex flex-col items-start gap-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          loading={resendingId === u.id}
+                          onClick={() => handleResendActivation(u.id)}
+                        >
+                          Resend Activation
+                        </Button>
+                        {resendResult?.id === u.id && (
+                          <span className={`text-xs ${resendResult.ok ? 'text-green-dark' : 'text-red'}`}>
+                            {resendResult.message}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -19,9 +19,12 @@ interface Envelope<T> {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<{ message: string; obj: T; count?: number }> {
+  // FormData needs the browser to set its own multipart boundary header —
+  // forcing application/json here would break uploads.
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData
   const res = await fetch(path, {
     ...options,
-    headers: { 'Content-Type': 'application/json', ...(options.headers ?? {}) },
+    headers: isFormData ? options.headers : { 'Content-Type': 'application/json', ...(options.headers ?? {}) },
   })
 
   let body: Envelope<T> | null = null
@@ -46,6 +49,7 @@ export const api = {
   patch: <T>(path: string, data?: unknown) => request<T>(path, { method: 'PATCH', body: JSON.stringify(data) }),
   del: <T>(path: string, data?: unknown) =>
     request<T>(path, { method: 'DELETE', body: data !== undefined ? JSON.stringify(data) : undefined }),
+  upload: <T>(path: string, formData: FormData) => request<T>(path, { method: 'POST', body: formData }),
 }
 
 // The DB layer keys every document by `_id` (types/db.ts); the frontend-facing
