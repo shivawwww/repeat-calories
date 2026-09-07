@@ -152,3 +152,20 @@ export function IconBell({ className = 'h-5 w-5' }: IconProps) {
     </svg>
   )
 }
+
+export function IconRepeat({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={`${base} ${className}`} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 9l3-3m-3 3 3 3M4 9h11a5 5 0 0 1 5 5M20 15l-3 3m3-3-3-3m3 3H9a5 5 0 0 1-5-5" />
+    </svg>
+  )
+}
+
+export function IconUserPlus({ className = 'h-5 w-5' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={`${base} ${className}`} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="10" cy="8" r="3.2" />
+      <path d="M3.5 20c1.2-3.4 3.7-5.2 6.5-5.2 1 0 2 .24 2.9.7M17 14v6M14 17h6" />
+    </svg>
+  )
+}

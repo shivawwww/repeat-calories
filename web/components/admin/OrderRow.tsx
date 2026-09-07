@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import OrderStatusBadge from '@/components/order/OrderStatusBadge'
+import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
+import { api } from '@/lib/api'
+import { useToast } from '@/components/ui/Toast'
 import { formatIST } from '@/lib/datetime'
 import { Order, OrderStatus } from '@/types/models'
 
@@ -27,9 +30,19 @@ function elapsed(createdAt: string): string {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
-export default function OrderRow({ order, onStatusChange }: { order: Order; onStatusChange: (id: string, status: OrderStatus) => Promise<void> }) {
+export default function OrderRow({
+  order,
+  onStatusChange,
+}: {
+  order: Order
+  onStatusChange: (id: string, status: OrderStatus) => Promise<void>
+}) {
+  const { show } = useToast()
   const [updating, setUpdating] = useState(false)
+  const [paid, setPaid] = useState(order.payment_status === 'paid')
+  const [payBusy, setPayBusy] = useState(false)
   const next = NEXT_STATUS[order.status]
+  const isManual = order.source === 'manual'
 
   async function handleAdvance() {
     if (!next) return
@@ -41,13 +54,33 @@ export default function OrderRow({ order, onStatusChange }: { order: Order; onSt
     }
   }
 
+  async function togglePaid() {
+    setPayBusy(true)
+    try {
+      await api.patch(`/api/admin/orders/${order.id}/payment`, { paid: !paid })
+      setPaid(!paid)
+      show('Payment updated', 'success')
+    } catch {
+      show('Could not update payment', 'error')
+    } finally {
+      setPayBusy(false)
+    }
+  }
+
   return (
     <div className="rounded-3xl border border-cream-deep bg-cream-soft p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <p className="font-display text-sm font-bold text-ink">{order.order_number}</p>
             <OrderStatusBadge status={order.status} />
+            {isManual && <Badge tone="neutral">{order.order_kind === 'subscription' ? 'subscription' : 'manual'}</Badge>}
+            {order.meal_type && (
+              <Badge tone="orange">
+                {order.meal_type}
+                {order.meal_variant && order.meal_variant !== 'normal' ? ` · ${order.meal_variant}` : ''}
+              </Badge>
+            )}
           </div>
           <p className="mt-1 text-xs text-ink-soft">
             {formatIST(order.created_at, 'DD MMM, hh:mm A')} · {elapsed(order.created_at)}
@@ -59,20 +92,41 @@ export default function OrderRow({ order, onStatusChange }: { order: Order; onSt
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-soft">
-        {order.items.map((i) => (
-          <span key={i.menu_item_id}>
-            {i.name} ×{i.quantity}
-          </span>
-        ))}
-      </div>
+      {order.items.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-soft">
+          {order.items.map((i, idx) => (
+            <span key={i.menu_item_id || idx}>
+              {i.name} ×{i.quantity}
+            </span>
+          ))}
+        </div>
+      )}
 
-      <p className="mt-2 text-xs text-ink-soft">
-        📍 {order.delivery_address.full_address}, {order.delivery_address.area}, {order.delivery_address.city} - {order.delivery_address.pincode}
-      </p>
+      {(order.delivery_address.full_address || order.delivery_address.area) && (
+        <p className="mt-2 text-xs text-ink-soft">
+          📍 {order.delivery_address.full_address}, {order.delivery_address.area}, {order.delivery_address.city} -{' '}
+          {order.delivery_address.pincode}
+        </p>
+      )}
 
-      <div className="mt-4 flex items-center justify-between">
-        <span className="stat-figure font-display text-lg font-bold text-ink">₹{order.total_amount}</span>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="stat-figure font-display text-lg font-bold text-ink">₹{order.total_amount}</span>
+          {isManual ? (
+            <button
+              type="button"
+              onClick={togglePaid}
+              disabled={payBusy}
+              className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide disabled:opacity-50 ${
+                paid ? 'bg-green-soft text-green-dark' : 'bg-gold/15 text-gold'
+              }`}
+            >
+              {paid ? 'Paid' : 'Mark paid'}
+            </button>
+          ) : (
+            <Badge tone={paid ? 'green' : 'gold'}>{paid ? 'paid' : order.payment_status}</Badge>
+          )}
+        </div>
         {next && (
           <Button size="sm" loading={updating} onClick={handleAdvance}>
             {NEXT_LABEL[order.status]}

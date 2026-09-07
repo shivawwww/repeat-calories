@@ -8,9 +8,10 @@ export async function GET() {
   if (!admin) return fail('Unauthorized', 403)
 
   const db = await getDb()
+  // Walk-in customers (admin-created, no login) live on /admin/customers instead.
   const users = await db
     .collection<UserDoc>('users')
-    .find({}, { projection: { password_hash: 0, activation_token: 0, reset_token: 0 } })
+    .find({ is_walkin: { $ne: true } }, { projection: { password_hash: 0, activation_token: 0, reset_token: 0 } })
     .sort({ created_at: -1 })
     .toArray()
 

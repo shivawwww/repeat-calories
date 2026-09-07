@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
             $set: {
               status: 'confirmed',
               payment_status: 'paid',
+              paid_at: now,
               'razorpay.razorpay_payment_id': razorpay_payment_id,
               'razorpay.payment_captured_at': now,
               updated_at: now,

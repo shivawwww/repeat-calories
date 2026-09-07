@@ -21,6 +21,8 @@ export interface User {
   auth_provider: 'credentials' | 'google'
   addresses: Address[]
   fcmTokens?: string[]
+  is_walkin?: boolean
+  walkin_notes?: string
   created_at: string
   updated_at: string
 }
@@ -74,6 +76,11 @@ export type OrderStatus =
 
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
 
+export type MealType = 'lunch' | 'dinner'
+export type MealVariant = 'normal' | 'salad' | 'wrap' | 'custom'
+export type OrderSource = 'online' | 'manual'
+export type OrderKind = 'one_time' | 'subscription'
+
 export interface OrderItem {
   menu_item_id: string
   name: string
@@ -93,8 +100,14 @@ export interface Order {
   delivery_charge: number
   total_amount: number
   status: OrderStatus
-  payment_method: 'razorpay' | 'cod'
+  payment_method: 'razorpay' | 'cod' | 'manual'
   payment_status: PaymentStatus
+  paid_at?: string
+  source?: OrderSource
+  order_kind?: OrderKind
+  subscription_id?: string
+  meal_type?: MealType
+  meal_variant?: MealVariant
   razorpay?: {
     razorpay_order_id: string
     razorpay_payment_id?: string
@@ -102,6 +115,52 @@ export interface Order {
     payment_captured_at?: string
   }
   notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export type SubscriptionPlan = 'lunch' | 'dinner' | 'lunch_dinner'
+export type SubscriptionStatus = 'active' | 'paused' | 'ended'
+
+export interface Subscription {
+  id: string
+  user_id: string
+  user_snapshot: { name: string; mobile: string }
+  plan: SubscriptionPlan
+  start_date: string
+  end_date: string
+  delivery_days: number[]
+  lunch_price?: number
+  dinner_price?: number
+  price_type: 'normal' | 'custom'
+  rotation_enabled: boolean
+  rotation_applies_to: MealType
+  rotation_start_with: 'salad' | 'wrap'
+  status: SubscriptionStatus
+  notes?: string
+  generated_count: number
+  total_amount: number
+  created_at: string
+  updated_at: string
+}
+
+export type ExpenseCategory =
+  | 'groceries'
+  | 'gas'
+  | 'packaging'
+  | 'delivery'
+  | 'staff'
+  | 'rent'
+  | 'other'
+
+export interface Expense {
+  id: string
+  date: string
+  category: ExpenseCategory
+  description: string
+  amount: number
+  notes?: string
+  created_by: string
   created_at: string
   updated_at: string
 }

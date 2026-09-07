@@ -29,6 +29,10 @@ export interface UserDoc {
   reset_token_expires: string | null
   fcmTokens: string[]
   addresses: AddressDoc[]
+  // Admin-created "walk-in" customer (orders taken over WhatsApp/phone). Cannot log in:
+  // password_hash is null, is_active is false, email is a synthetic placeholder.
+  is_walkin?: boolean
+  walkin_notes?: string
   created_at: string
   updated_at: string
 }
@@ -89,6 +93,11 @@ export interface OrderItemDoc {
   subtotal: number
 }
 
+export type MealType = 'lunch' | 'dinner'
+export type MealVariant = 'normal' | 'salad' | 'wrap' | 'custom'
+export type OrderSource = 'online' | 'manual'
+export type OrderKind = 'one_time' | 'subscription'
+
 export interface OrderDoc {
   _id: string
   order_number: string
@@ -100,8 +109,18 @@ export interface OrderDoc {
   delivery_charge: number
   total_amount: number
   status: string
-  payment_method: 'razorpay' | 'cod'
+  payment_method: 'razorpay' | 'cod' | 'manual'
   payment_status: string
+  // Set the moment money actually lands — Razorpay capture, or an admin marking a
+  // manual order paid. Drives the dashboard "Today Received" figure.
+  paid_at?: string
+  // 'online' = placed by a customer through the website; 'manual' = logged by the
+  // admin (walk-in order or auto-generated from a subscription).
+  source?: OrderSource
+  order_kind?: OrderKind
+  subscription_id?: string
+  meal_type?: MealType
+  meal_variant?: MealVariant
   razorpay?: {
     razorpay_order_id: string
     razorpay_payment_id?: string
@@ -109,6 +128,53 @@ export interface OrderDoc {
     payment_captured_at?: string
   }
   notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export type SubscriptionPlan = 'lunch' | 'dinner' | 'lunch_dinner'
+export type SubscriptionStatus = 'active' | 'paused' | 'ended'
+
+export interface SubscriptionDoc {
+  _id: string
+  user_id: string
+  user_snapshot: { name: string; mobile: string }
+  plan: SubscriptionPlan
+  start_date: string // 'YYYY-MM-DD' IST
+  end_date: string // 'YYYY-MM-DD' IST
+  delivery_days: number[] // weekday numbers, 0=Sun .. 6=Sat
+  lunch_price?: number
+  dinner_price?: number
+  price_type: 'normal' | 'custom'
+  // Alternating salad / wrap on one meal slot — only meaningful for 'lunch_dinner'.
+  rotation_enabled: boolean
+  rotation_applies_to: MealType
+  rotation_start_with: 'salad' | 'wrap'
+  status: SubscriptionStatus
+  notes?: string
+  generated_count: number
+  total_amount: number
+  created_at: string
+  updated_at: string
+}
+
+export type ExpenseCategory =
+  | 'groceries'
+  | 'gas'
+  | 'packaging'
+  | 'delivery'
+  | 'staff'
+  | 'rent'
+  | 'other'
+
+export interface ExpenseDoc {
+  _id: string
+  date: string // 'YYYY-MM-DD' IST
+  category: ExpenseCategory
+  description: string
+  amount: number
+  notes?: string
+  created_by: string
   created_at: string
   updated_at: string
 }
