@@ -46,8 +46,8 @@ export function normalizeSubscription(
 
   const lunch_price = needsLunch ? parseAmount(body.lunch_price) : undefined
   const dinner_price = needsDinner ? parseAmount(body.dinner_price) : undefined
-  if (needsLunch && (lunch_price === null || lunch_price <= 0)) return fail('A positive lunch_price is required', 400)
-  if (needsDinner && (dinner_price === null || dinner_price <= 0)) return fail('A positive dinner_price is required', 400)
+  if (needsLunch && (lunch_price == null || lunch_price <= 0)) return fail('A positive lunch_price is required', 400)
+  if (needsDinner && (dinner_price == null || dinner_price <= 0)) return fail('A positive dinner_price is required', 400)
 
   const rotation_applies_to: MealType = body.rotation_applies_to === 'lunch' ? 'lunch' : 'dinner'
   const rotation_start_with: 'salad' | 'wrap' = body.rotation_start_with === 'wrap' ? 'wrap' : 'salad'
