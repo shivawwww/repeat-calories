@@ -58,11 +58,11 @@ export default function SubscriptionForm({ onCreated }: { onCreated: () => void 
   )
 
   useEffect(() => {
-    if (!startDate || !endDate || endDate < startDate) {
-      setPreview(null)
-      return
-    }
     const t = setTimeout(async () => {
+      if (!startDate || !endDate || endDate < startDate) {
+        setPreview(null)
+        return
+      }
       try {
         const { obj } = await api.post<Preview>('/api/admin/subscriptions/preview', payload())
         setPreview(obj)
