@@ -142,10 +142,24 @@ export interface Subscription {
   total_amount: number
   created_at: string
   updated_at: string
+  // Attached by GET /api/admin/subscriptions/getall — live rollup of the
+  // generated orders (days = distinct service dates, not meal count).
+  stats?: SubscriptionStats
+}
+
+export interface SubscriptionStats {
+  days_total: number
+  days_given: number // service date on or before today
+  days_pending: number // service date after today
+  amount_paid: number
+  amount_unpaid: number
+  meals_paid: number
+  meals_unpaid: number
 }
 
 export type ExpenseCategory =
   | 'groceries'
+  | 'chicken'
   | 'gas'
   | 'packaging'
   | 'delivery'

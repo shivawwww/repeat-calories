@@ -160,6 +160,7 @@ export interface SubscriptionDoc {
 
 export type ExpenseCategory =
   | 'groceries'
+  | 'chicken'
   | 'gas'
   | 'packaging'
   | 'delivery'
