@@ -61,3 +61,16 @@ export function eachDeliveryDay(start: string, end: string, weekdays: number[]):
   }
   return out
 }
+
+// The next `count` delivery days strictly after `afterDate` — used to append
+// make-up days when a subscription meal was skipped.
+export function nextDeliveryDays(afterDate: string, weekdays: number[], count: number): string[] {
+  const out: string[] = []
+  let cursor = dayjs.tz(afterDate, IST).startOf('day').add(1, 'day')
+  let guard = 0
+  while (out.length < count && guard++ < 800) {
+    if (weekdays.includes(cursor.day())) out.push(cursor.format('YYYY-MM-DD'))
+    cursor = cursor.add(1, 'day')
+  }
+  return out
+}

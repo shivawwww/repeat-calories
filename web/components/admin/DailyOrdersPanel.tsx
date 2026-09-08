@@ -47,6 +47,17 @@ export default function DailyOrdersPanel({ onMutate }: { onMutate?: () => void }
     }
   }
 
+  async function markDelivery(o: Order, state: 'delivered' | 'skipped') {
+    // Clicking the active state again clears it back to unmarked.
+    const next = o.delivery_state === state ? 'pending' : state
+    try {
+      await api.patch(`/api/admin/orders/${o.id}/delivery`, { state: next })
+      refresh()
+    } catch {
+      show('Could not update', 'error')
+    }
+  }
+
   async function remove(o: Order) {
     if (!confirm(`Delete ${o.order_number}?`)) return
     try {
@@ -84,12 +95,13 @@ export default function DailyOrdersPanel({ onMutate }: { onMutate?: () => void }
         ) : orders.length === 0 ? (
           <p className="py-6 text-center text-sm text-ink-soft">No orders logged for this day.</p>
         ) : (
-          <table className="w-full min-w-[620px] text-sm">
+          <table className="w-full min-w-[760px] text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-ink-soft">
                 <th className="pb-2 pr-3 font-semibold">Customer</th>
                 <th className="pb-2 pr-3 font-semibold">Type</th>
                 <th className="pb-2 pr-3 font-semibold">Meal</th>
+                <th className="pb-2 pr-3 font-semibold">Given?</th>
                 <th className="pb-2 pr-3 font-semibold">Amount</th>
                 <th className="pb-2 pr-3 font-semibold">Payment</th>
                 <th className="pb-2 font-semibold" />
@@ -113,6 +125,32 @@ export default function DailyOrdersPanel({ onMutate }: { onMutate?: () => void }
                       {o.meal_type ?? '—'}
                       {o.meal_variant && o.meal_variant !== 'normal' ? ` · ${o.meal_variant}` : ''}
                       {(o.items[0]?.quantity ?? 1) > 1 ? ` ×${o.items[0].quantity}` : ''}
+                    </td>
+                    <td className="py-2.5 pr-3">
+                      {manual ? (
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => markDelivery(o, 'delivered')}
+                            className={`rounded-full px-2 py-1 text-xs font-bold ${
+                              o.delivery_state === 'delivered' ? 'bg-green text-cream-soft' : 'bg-cream-deep/50 text-ink-soft'
+                            }`}
+                          >
+                            Given
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => markDelivery(o, 'skipped')}
+                            className={`rounded-full px-2 py-1 text-xs font-bold ${
+                              o.delivery_state === 'skipped' ? 'bg-red text-cream-soft' : 'bg-cream-deep/50 text-ink-soft'
+                            }`}
+                          >
+                            Not sent
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-ink-soft">—</span>
+                      )}
                     </td>
                     <td className="stat-figure py-2.5 pr-3 text-ink">{money(o.total_amount)}</td>
                     <td className="py-2.5 pr-3">
