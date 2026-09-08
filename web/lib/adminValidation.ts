@@ -7,6 +7,7 @@ import {
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   'groceries',
+  'chicken',
   'gas',
   'packaging',
   'delivery',

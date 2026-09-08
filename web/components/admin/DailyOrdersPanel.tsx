@@ -84,10 +84,11 @@ export default function DailyOrdersPanel({ onMutate }: { onMutate?: () => void }
         ) : orders.length === 0 ? (
           <p className="py-6 text-center text-sm text-ink-soft">No orders logged for this day.</p>
         ) : (
-          <table className="w-full min-w-[560px] text-sm">
+          <table className="w-full min-w-[620px] text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-ink-soft">
                 <th className="pb-2 pr-3 font-semibold">Customer</th>
+                <th className="pb-2 pr-3 font-semibold">Type</th>
                 <th className="pb-2 pr-3 font-semibold">Meal</th>
                 <th className="pb-2 pr-3 font-semibold">Amount</th>
                 <th className="pb-2 pr-3 font-semibold">Payment</th>
@@ -97,16 +98,20 @@ export default function DailyOrdersPanel({ onMutate }: { onMutate?: () => void }
             <tbody className="divide-y divide-cream-deep">
               {orders.map((o) => {
                 const manual = o.source === 'manual'
+                const kind =
+                  o.order_kind === 'subscription' ? 'Subscription' : manual ? 'Daily order' : 'Online'
                 return (
                   <tr key={o.id}>
                     <td className="py-2.5 pr-3">
                       <p className="font-medium text-ink">{o.user_snapshot.name}</p>
                       <p className="text-xs text-ink-soft">{o.user_snapshot.mobile || o.order_number}</p>
                     </td>
+                    <td className="py-2.5 pr-3">
+                      <Badge tone={kind === 'Subscription' ? 'green' : kind === 'Online' ? 'neutral' : 'orange'}>{kind}</Badge>
+                    </td>
                     <td className="py-2.5 pr-3 capitalize text-ink-soft">
                       {o.meal_type ?? '—'}
                       {o.meal_variant && o.meal_variant !== 'normal' ? ` · ${o.meal_variant}` : ''}
-                      {o.order_kind === 'subscription' && <Badge tone="neutral">sub</Badge>}
                     </td>
                     <td className="stat-figure py-2.5 pr-3 text-ink">{money(o.total_amount)}</td>
                     <td className="py-2.5 pr-3">

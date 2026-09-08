@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api, ApiError } from '@/lib/api'
 import { useToast } from '@/components/ui/Toast'
 import Button from '@/components/ui/Button'
@@ -18,12 +18,38 @@ interface Preview {
   sampleDays: { date: string; meals: { meal_type: MealType; meal_variant: string; amount: number }[] }[]
 }
 
+// UTC-only date maths so nothing drifts across the IST offset.
+function addDays(dateStr: string, n: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const dt = new Date(Date.UTC(y, m - 1, d))
+  dt.setUTCDate(dt.getUTCDate() + n)
+  return dt.toISOString().slice(0, 10)
+}
+function weekdayOf(dateStr: string): number {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay()
+}
+// Date of the Nth delivery day counting from `start` (inclusive).
+function endDateFromDays(start: string, weekdays: number[], nDays: number): string {
+  if (!start || !weekdays.length || !(nDays >= 1)) return ''
+  let cur = start
+  let count = weekdays.includes(weekdayOf(cur)) ? 1 : 0
+  let guard = 0
+  while (count < nDays && guard++ < 4000) {
+    cur = addDays(cur, 1)
+    if (weekdays.includes(weekdayOf(cur))) count++
+  }
+  return count >= nDays ? cur : ''
+}
+
 export default function SubscriptionForm({ onCreated }: { onCreated: () => void }) {
   const { show } = useToast()
   const [customer, setCustomer] = useState<PickedCustomer | null>(null)
   const [plan, setPlan] = useState<SubscriptionPlan>('lunch_dinner')
   const [startDate, setStartDate] = useState(() => formatIST(new Date(), 'YYYY-MM-DD'))
-  const [endDate, setEndDate] = useState('')
+  const [durationMode, setDurationMode] = useState<'days' | 'end_date'>('days')
+  const [numDays, setNumDays] = useState('26')
+  const [endDateInput, setEndDateInput] = useState('')
   const [deliveryDays, setDeliveryDays] = useState<number[]>([1, 2, 3, 4, 5, 6])
   const [priceType, setPriceType] = useState<'normal' | 'custom'>('normal')
   const [lunchPrice, setLunchPrice] = useState('')
@@ -32,6 +58,7 @@ export default function SubscriptionForm({ onCreated }: { onCreated: () => void 
   const [rotationAppliesTo, setRotationAppliesTo] = useState<MealType>('dinner')
   const [rotationStartWith, setRotationStartWith] = useState<'salad' | 'wrap'>('salad')
   const [notes, setNotes] = useState('')
+  const [markPaid, setMarkPaid] = useState(false)
 
   const [preview, setPreview] = useState<Preview | null>(null)
   const [busy, setBusy] = useState(false)
@@ -39,6 +66,11 @@ export default function SubscriptionForm({ onCreated }: { onCreated: () => void 
 
   const needsLunch = plan === 'lunch' || plan === 'lunch_dinner'
   const needsDinner = plan === 'dinner' || plan === 'lunch_dinner'
+
+  const endDate = useMemo(
+    () => (durationMode === 'days' ? endDateFromDays(startDate, deliveryDays, Number(numDays)) : endDateInput),
+    [durationMode, startDate, deliveryDays, numDays, endDateInput]
+  )
 
   const payload = useCallback(
     () => ({
@@ -81,10 +113,13 @@ export default function SubscriptionForm({ onCreated }: { onCreated: () => void 
     e.preventDefault()
     setError(null)
     if (!customer) return setError('Pick a customer')
-    if (!endDate || endDate < startDate) return setError('Set a valid end date')
+    if (!endDate || endDate < startDate) return setError('Set a valid duration')
     setBusy(true)
     try {
-      await api.post('/api/admin/subscriptions/add', { user_id: customer.id, ...payload() })
+      const { obj } = await api.post<{ _id: string }>('/api/admin/subscriptions/add', { user_id: customer.id, ...payload() })
+      if (markPaid && obj?._id) {
+        await api.post(`/api/admin/subscriptions/${obj._id}/mark-paid`, { paid: true })
+      }
       show('Subscription created', 'success')
       onCreated()
     } catch (err) {
@@ -95,21 +130,36 @@ export default function SubscriptionForm({ onCreated }: { onCreated: () => void 
   }
 
   return (
-    <form onSubmit={submit} className="rounded-3xl border border-cream-deep bg-cream-soft p-6">
-      <h2 className="font-display text-lg font-semibold text-ink">New Subscription</h2>
-
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+    <form onSubmit={submit} className="flex flex-col gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <CustomerPicker value={customer} onChange={setCustomer} />
         <Select label="Plan" value={plan} onChange={(e) => setPlan(e.target.value as SubscriptionPlan)}>
           <option value="lunch">Lunch only</option>
           <option value="dinner">Dinner only</option>
           <option value="lunch_dinner">Lunch + Dinner</option>
         </Select>
-        <Input label="Start date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-        <Input label="End date" type="date" value={endDate} min={startDate} onChange={(e) => setEndDate(e.target.value)} />
       </div>
 
-      <div className="mt-4">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Input label="Start date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        <Select label="Duration by" value={durationMode} onChange={(e) => setDurationMode(e.target.value as 'days' | 'end_date')}>
+          <option value="days">Number of days</option>
+          <option value="end_date">End date</option>
+        </Select>
+        {durationMode === 'days' ? (
+          <Input
+            label="How many days"
+            inputMode="numeric"
+            value={numDays}
+            onChange={(e) => setNumDays(e.target.value)}
+            hint={endDate ? `ends ${formatIST(endDate, 'DD MMM')}` : undefined}
+          />
+        ) : (
+          <Input label="End date" type="date" value={endDateInput} min={startDate} onChange={(e) => setEndDateInput(e.target.value)} />
+        )}
+      </div>
+
+      <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Delivery days</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {WEEKDAYS.map((w, i) => (
@@ -127,18 +177,18 @@ export default function SubscriptionForm({ onCreated }: { onCreated: () => void 
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Select label="Pricing" value={priceType} onChange={(e) => setPriceType(e.target.value as 'normal' | 'custom')}>
           <option value="normal">Normal</option>
           <option value="custom">Custom</option>
         </Select>
         <div />
-        {needsLunch && <Input label="Lunch price (₹)" inputMode="decimal" value={lunchPrice} onChange={(e) => setLunchPrice(e.target.value)} />}
-        {needsDinner && <Input label="Dinner price (₹)" inputMode="decimal" value={dinnerPrice} onChange={(e) => setDinnerPrice(e.target.value)} />}
+        {needsLunch && <Input label="Lunch price / day (₹)" inputMode="decimal" value={lunchPrice} onChange={(e) => setLunchPrice(e.target.value)} />}
+        {needsDinner && <Input label="Dinner price / day (₹)" inputMode="decimal" value={dinnerPrice} onChange={(e) => setDinnerPrice(e.target.value)} />}
       </div>
 
       {plan === 'lunch_dinner' && (
-        <div className="mt-4 rounded-2xl border border-cream-deep bg-white/60 p-4">
+        <div className="rounded-2xl border border-cream-deep bg-white/60 p-4">
           <label className="flex items-center gap-2 text-sm font-medium text-ink">
             <input type="checkbox" checked={rotationEnabled} onChange={(e) => setRotationEnabled(e.target.checked)} className="h-4 w-4 accent-green" />
             Alternate salad / wrap
@@ -158,14 +208,17 @@ export default function SubscriptionForm({ onCreated }: { onCreated: () => void 
         </div>
       )}
 
-      <div className="mt-4">
-        <Textarea label="Notes (optional)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
-      </div>
+      <Textarea label="Notes (optional)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+
+      <label className="flex items-center gap-2 text-sm font-medium text-ink">
+        <input type="checkbox" checked={markPaid} onChange={(e) => setMarkPaid(e.target.checked)} className="h-4 w-4 accent-green" />
+        Amount already paid in full
+      </label>
 
       {preview && (
-        <div className="mt-4 rounded-2xl bg-green-soft p-4 text-sm text-green-dark">
+        <div className="rounded-2xl bg-green-soft p-4 text-sm text-green-dark">
           <p className="font-semibold">
-            {preview.count} orders · {money(preview.total)} total
+            {preview.count} meals · {money(preview.total)} total
           </p>
           {preview.sampleDays.length > 0 && (
             <ul className="mt-2 space-y-1 text-xs">
@@ -180,13 +233,11 @@ export default function SubscriptionForm({ onCreated }: { onCreated: () => void 
         </div>
       )}
 
-      {error && <p className="mt-3 text-xs font-medium text-red">{error}</p>}
+      {error && <p className="text-xs font-medium text-red">{error}</p>}
 
-      <div className="mt-4">
-        <Button type="submit" loading={busy}>
-          Create subscription
-        </Button>
-      </div>
+      <Button type="submit" full loading={busy}>
+        Create subscription
+      </Button>
     </form>
   )
 }

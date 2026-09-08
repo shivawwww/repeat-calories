@@ -10,7 +10,7 @@ import { IconTrash } from '@/components/ui/icons'
 import { formatIST } from '@/lib/datetime'
 import { Expense, ExpenseCategory } from '@/types/models'
 
-const CATEGORIES: ExpenseCategory[] = ['groceries', 'gas', 'packaging', 'delivery', 'staff', 'rent', 'other']
+const CATEGORIES: ExpenseCategory[] = ['groceries', 'chicken', 'gas', 'packaging', 'delivery', 'staff', 'rent', 'other']
 const money = (n: number) => `₹${n.toLocaleString('en-IN')}`
 
 export default function ExpensesPanel({ onMutate }: { onMutate?: () => void }) {
