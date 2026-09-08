@@ -10,7 +10,8 @@ export interface ManualOrderInput {
   date: string // 'YYYY-MM-DD'
   meal_type: MealType
   meal_variant: MealVariant
-  amount: number
+  amount: number // unit price
+  quantity?: number // defaults to 1
   paid: boolean
   notes?: string
   numberKind?: Extract<OrderNumberKind, 'manual' | 'legacy'>
@@ -23,6 +24,8 @@ export async function buildManualOrder(db: Db, input: ManualOrderInput): Promise
   const addr = user.addresses?.find((a) => a.is_default) ?? user.addresses?.[0]
   const now = nowIST()
   const name = mealLabel(input.meal_type, input.meal_variant)
+  const qty = input.quantity && input.quantity > 0 ? Math.floor(input.quantity) : 1
+  const total = input.amount * qty
 
   return {
     _id: uuidv4(),
@@ -40,10 +43,10 @@ export async function buildManualOrder(db: Db, input: ManualOrderInput): Promise
       lat: addr?.lat,
       lng: addr?.lng,
     },
-    items: [{ menu_item_id: '', name, price: input.amount, quantity: 1, subtotal: input.amount }],
-    subtotal: input.amount,
+    items: [{ menu_item_id: '', name, price: input.amount, quantity: qty, subtotal: total }],
+    subtotal: total,
     delivery_charge: 0,
-    total_amount: input.amount,
+    total_amount: total,
     status: 'confirmed',
     payment_method: 'manual',
     payment_status: input.paid ? 'paid' : 'pending',

@@ -28,12 +28,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   if (body.amount !== undefined) {
+    // `amount` here is the new line total; keep the recorded quantity.
     const amt = parseAmount(body.amount)
     if (amt === null || amt <= 0) return fail('A positive amount is required', 400)
     const name = order.items[0]?.name ?? 'Meal'
+    const qty = order.items[0]?.quantity ?? 1
     set.total_amount = amt
     set.subtotal = amt
-    set.items = [{ menu_item_id: '', name, price: amt, quantity: 1, subtotal: amt }]
+    set.items = [{ menu_item_id: '', name, price: qty > 0 ? amt / qty : amt, quantity: qty, subtotal: amt }]
   }
 
   if (body.paid) {
