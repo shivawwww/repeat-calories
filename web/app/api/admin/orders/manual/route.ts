@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   if (!admin) return fail('Unauthorized', 403)
 
   const body = await req.json().catch(() => null)
-  const { user_id, date, meal_type, meal_variant, amount, paid, notes } = body ?? {}
+  const { user_id, date, meal_type, meal_variant, amount, quantity, paid, notes } = body ?? {}
 
   if (!user_id) return fail('user_id is required', 400)
   if (!isValidDate(date)) return fail('A valid date (YYYY-MM-DD) is required', 400)
@@ -19,6 +19,8 @@ export async function POST(req: NextRequest) {
   if (!MEAL_VARIANTS.includes(meal_variant)) return fail('Invalid meal_variant', 400)
   const amt = parseAmount(amount)
   if (amt === null || amt <= 0) return fail('A positive amount is required', 400)
+  const qty = quantity === undefined ? 1 : Number(quantity)
+  if (!Number.isInteger(qty) || qty < 1 || qty > 99) return fail('quantity must be 1-99', 400)
 
   const db = await getDb()
   const user = await db.collection<UserDoc>('users').findOne({ _id: user_id })
@@ -30,6 +32,7 @@ export async function POST(req: NextRequest) {
     meal_type,
     meal_variant,
     amount: amt,
+    quantity: qty,
     paid: !!paid,
     notes: typeof notes === 'string' && notes.trim() ? notes.trim() : undefined,
   })
