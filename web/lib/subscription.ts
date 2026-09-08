@@ -1,4 +1,4 @@
-import { Db } from 'mongodb'
+import { Db, Filter } from 'mongodb'
 import { v4 as uuidv4 } from 'uuid'
 import { generateOrderNumber } from '@/lib/orderNumber'
 import { eachDeliveryDay, istDateAtNoon, nowIST } from '@/lib/datetime'
@@ -76,6 +76,18 @@ export function previewSubscription(sub: SubscriptionInput): {
 // Materialise a subscription into individual `orders` documents, one per meal per
 // delivery day. Each is a manual order the admin marks paid as money comes in.
 export async function buildSubscriptionOrders(db: Db, sub: SubscriptionDoc): Promise<OrderDoc[]> {
+  const days = eachDeliveryDay(sub.start_date, sub.end_date, sub.delivery_days)
+  return buildOrdersForDates(db, sub, days, 0)
+}
+
+// Generate orders for an explicit list of service dates, continuing the
+// salad/wrap rotation from `startIndex` (so appended make-up days rotate right).
+export async function buildOrdersForDates(
+  db: Db,
+  sub: SubscriptionDoc,
+  dates: string[],
+  startIndex: number
+): Promise<OrderDoc[]> {
   const user = await db.collection<UserDoc>('users').findOne({ _id: sub.user_id })
   const addr = user?.addresses?.find((a) => a.is_default) ?? user?.addresses?.[0]
   const delivery_address = {
@@ -90,12 +102,12 @@ export async function buildSubscriptionOrders(db: Db, sub: SubscriptionDoc): Pro
     lng: addr?.lng,
   }
 
-  const days = eachDeliveryDay(sub.start_date, sub.end_date, sub.delivery_days)
   const now = nowIST()
   const orders: OrderDoc[] = []
 
-  for (let i = 0; i < days.length; i++) {
-    const date = days[i]
+  for (let j = 0; j < dates.length; j++) {
+    const date = dates[j]
+    const i = startIndex + j
     for (const meal of mealsForDay(sub, i)) {
       const name = mealLabel(meal.meal_type, meal.meal_variant)
       orders.push({
@@ -127,24 +139,28 @@ export async function buildSubscriptionOrders(db: Db, sub: SubscriptionDoc): Pro
   return orders
 }
 
-// Idempotent (re)generation: keep every order that's already been marked paid,
-// drop the rest for this subscription, and insert whatever days are now missing.
+// Idempotent (re)generation: keep every order that's already been paid for or
+// marked delivered/skipped, drop the rest, and insert whatever days are missing.
 export async function regenerateSubscriptionOrders(
   db: Db,
   sub: SubscriptionDoc
 ): Promise<{ generated_count: number; total_amount: number }> {
-  await db
-    .collection<OrderDoc>('orders')
-    .deleteMany({ subscription_id: sub._id, payment_status: { $ne: 'paid' } })
+  const keepFilter = {
+    subscription_id: sub._id,
+    $or: [{ payment_status: 'paid' }, { delivery_state: { $in: ['delivered', 'skipped'] } }],
+  } as Filter<OrderDoc>
 
-  const paid = await db
-    .collection<OrderDoc>('orders')
-    .find({ subscription_id: sub._id, payment_status: 'paid' })
-    .toArray()
-  const paidKeys = new Set(paid.map((o) => `${o.created_at.slice(0, 10)}|${o.meal_type}`))
+  await db.collection<OrderDoc>('orders').deleteMany({
+    subscription_id: sub._id,
+    payment_status: { $ne: 'paid' },
+    delivery_state: { $nin: ['delivered', 'skipped'] },
+  } as Filter<OrderDoc>)
+
+  const kept = await db.collection<OrderDoc>('orders').find(keepFilter).toArray()
+  const keptKeys = new Set(kept.map((o) => `${o.created_at.slice(0, 10)}|${o.meal_type}`))
 
   const fresh = (await buildSubscriptionOrders(db, sub)).filter(
-    (o) => !paidKeys.has(`${o.created_at.slice(0, 10)}|${o.meal_type}`)
+    (o) => !keptKeys.has(`${o.created_at.slice(0, 10)}|${o.meal_type}`)
   )
   if (fresh.length) await db.collection<OrderDoc>('orders').insertMany(fresh)
 

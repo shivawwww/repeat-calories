@@ -59,6 +59,22 @@ export default function AdminSubscriptionsPage() {
     }
   }
 
+  async function addDays(id: string) {
+    const raw = prompt('How many make-up days to add?', '1')
+    const count = Number(raw)
+    if (!Number.isInteger(count) || count < 1) return
+    try {
+      const { obj } = await api.post<{ new_end_date: string; days_added: number }>(
+        `/api/admin/subscriptions/${id}/add-days`,
+        { count }
+      )
+      show(`Added ${obj.days_added} day(s) — now ends ${obj.new_end_date}`, 'success')
+      load()
+    } catch {
+      show('Could not add days', 'error')
+    }
+  }
+
   async function regenerate(id: string) {
     try {
       const { obj } = await api.post<{ generated_count: number }>(`/api/admin/subscriptions/${id}/regenerate`)
@@ -138,9 +154,10 @@ export default function AdminSubscriptionsPage() {
                 </div>
 
                 {st && (
-                  <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <Stat label="Days given" value={`${st.days_given} / ${st.days_total}`} />
-                    <Stat label="Days pending" value={String(st.days_pending)} />
+                  <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+                    <Stat label="Delivered" value={`${st.meals_delivered} / ${st.meals_total}`} tone="green" />
+                    <Stat label="Not sent" value={String(st.meals_skipped)} tone="gold" />
+                    <Stat label="To go" value={String(st.meals_remaining)} />
                     <Stat label="Paid" value={money(st.amount_paid)} sub={`${st.meals_paid} meals`} tone="green" />
                     <Stat label="Unpaid" value={money(st.amount_unpaid)} sub={`${st.meals_unpaid} meals`} tone="gold" />
                   </div>
@@ -172,6 +189,9 @@ export default function AdminSubscriptionsPage() {
                       End
                     </Button>
                   )}
+                  <Button size="sm" variant="ghost" onClick={() => addDays(s.id)}>
+                    ＋ Make-up days
+                  </Button>
                   <Button size="sm" variant="ghost" onClick={() => regenerate(s.id)}>
                     Regenerate
                   </Button>

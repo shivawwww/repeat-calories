@@ -97,6 +97,9 @@ export type MealType = 'lunch' | 'dinner'
 export type MealVariant = 'normal' | 'salad' | 'wrap' | 'custom'
 export type OrderSource = 'online' | 'manual'
 export type OrderKind = 'one_time' | 'subscription'
+// Did this meal actually go out? Admin marks it each day. 'skipped' meals don't
+// count as delivered and can be made up by extending the subscription.
+export type DeliveryState = 'pending' | 'delivered' | 'skipped'
 
 export interface OrderDoc {
   _id: string
@@ -121,6 +124,8 @@ export interface OrderDoc {
   subscription_id?: string
   meal_type?: MealType
   meal_variant?: MealVariant
+  delivery_state?: DeliveryState
+  delivery_marked_at?: string
   razorpay?: {
     razorpay_order_id: string
     razorpay_payment_id?: string

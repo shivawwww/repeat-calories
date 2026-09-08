@@ -80,6 +80,7 @@ export type MealType = 'lunch' | 'dinner'
 export type MealVariant = 'normal' | 'salad' | 'wrap' | 'custom'
 export type OrderSource = 'online' | 'manual'
 export type OrderKind = 'one_time' | 'subscription'
+export type DeliveryState = 'pending' | 'delivered' | 'skipped'
 
 export interface OrderItem {
   menu_item_id: string
@@ -108,6 +109,8 @@ export interface Order {
   subscription_id?: string
   meal_type?: MealType
   meal_variant?: MealVariant
+  delivery_state?: DeliveryState
+  delivery_marked_at?: string
   razorpay?: {
     razorpay_order_id: string
     razorpay_payment_id?: string
@@ -148,9 +151,12 @@ export interface Subscription {
 }
 
 export interface SubscriptionStats {
+  meals_total: number
+  meals_delivered: number
+  meals_skipped: number
+  meals_remaining: number // not yet marked delivered/skipped
   days_total: number
-  days_given: number // service date on or before today
-  days_pending: number // service date after today
+  days_delivered: number
   amount_paid: number
   amount_unpaid: number
   meals_paid: number
