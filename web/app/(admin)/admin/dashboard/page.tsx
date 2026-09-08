@@ -35,6 +35,7 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     Promise.all([
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount
       loadSummary(),
       api.get<(Order & { _id: string })[]>('/api/admin/orders/getall').then((o) => setRecent(withIds(o.obj).slice(0, 6))),
     ]).finally(() => setLoading(false))

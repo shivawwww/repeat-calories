@@ -36,6 +36,7 @@ export default function ExpensesPanel({ onMutate }: { onMutate?: () => void }) {
   }, [date])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount / on date change
     load()
   }, [load])
 
