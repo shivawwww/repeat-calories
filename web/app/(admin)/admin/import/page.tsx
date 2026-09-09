@@ -49,6 +49,17 @@ const SEED = {
     { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-10', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 130, paid: false },
     { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-11', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, paid: false },
     { customer_name: 'Vishwa', customer_mobile: '8220710970', date: '2026-09-11', meal_type: 'dinner', meal_variant: 'wrap', amount: 170, paid: false, notes: 'Make-up for Sep 7 dinner' },
+
+    // Walk-in / one-off orders — all paid, all delivered
+    { customer_name: 'Abhilash', customer_mobile: '9003151312', date: '2026-08-29', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 150, quantity: 2, paid: true, delivery_state: 'delivered' },
+    { customer_name: 'Abhilash', customer_mobile: '9003151312', date: '2026-08-29', meal_type: 'dinner', meal_variant: 'salad', amount: 150, quantity: 3, paid: true, delivery_state: 'delivered' },
+    { customer_name: 'Abhilash', customer_mobile: '9003151312', date: '2026-08-29', meal_type: 'dinner', meal_variant: 'wrap', amount: 120, quantity: 3, paid: true, delivery_state: 'delivered' },
+    { customer_name: 'Indresh', customer_mobile: '9976987821', date: '2026-08-31', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, quantity: 1, paid: true, delivery_state: 'delivered' },
+    { customer_name: 'Indresh', customer_mobile: '9976987821', date: '2026-08-31', meal_type: 'dinner', meal_variant: 'salad', amount: 130, quantity: 1, paid: true, delivery_state: 'delivered' },
+    { customer_name: 'Indresh', customer_mobile: '9976987821', date: '2026-08-31', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, quantity: 1, paid: true, delivery_state: 'delivered' },
+    { customer_name: 'Nandhini', customer_mobile: '9629162288', date: '2026-08-29', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 159, quantity: 1, paid: true, delivery_state: 'delivered' },
+    { customer_name: 'Mohan coach', customer_mobile: '7373994232', date: '2026-08-31', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, quantity: 1, paid: true, delivery_state: 'delivered' },
+    { customer_name: 'Vignesh Ravikumar', customer_mobile: '9444872677', date: '2026-09-01', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, quantity: 2, paid: true, delivery_state: 'delivered' },
   ],
   expenses: [],
 }

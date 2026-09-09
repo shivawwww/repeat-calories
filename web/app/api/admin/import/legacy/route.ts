@@ -107,6 +107,7 @@ export async function POST(req: NextRequest) {
       user_id: user._id,
       source: 'manual',
       meal_type,
+      meal_variant,
       created_at: { $gte: start, $lte: end },
     })
     if (dup) { report.orders_skipped++; continue }
