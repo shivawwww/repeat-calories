@@ -22,7 +22,8 @@ export default function DailyOrdersPanel({ onMutate }: { onMutate?: () => void }
     setLoading(true)
     try {
       const { obj } = await api.get<(Order & { _id: string })[]>(`/api/admin/orders/getall?date=${date}`)
-      setOrders(withIds(obj))
+      // Subscription meals are tracked on the Subscriptions page, not here.
+      setOrders(withIds(obj).filter((o) => o.order_kind !== 'subscription'))
     } finally {
       setLoading(false)
     }
