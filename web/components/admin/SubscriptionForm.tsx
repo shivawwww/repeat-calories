@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button'
 import { Input, Select, Textarea } from '@/components/ui/Input'
 import CustomerPicker, { PickedCustomer } from '@/components/admin/CustomerPicker'
 import { formatIST } from '@/lib/datetime'
-import { MealType, SubscriptionPlan } from '@/types/models'
+import { MealType, Subscription, SubscriptionPlan } from '@/types/models'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const money = (n: number) => `₹${n.toLocaleString('en-IN')}`
@@ -42,22 +42,29 @@ function endDateFromDays(start: string, weekdays: number[], nDays: number): stri
   return count >= nDays ? cur : ''
 }
 
-export default function SubscriptionForm({ onCreated }: { onCreated: () => void }) {
+export default function SubscriptionForm({
+  onCreated,
+  existing,
+}: {
+  onCreated: () => void
+  existing?: Subscription
+}) {
   const { show } = useToast()
+  const editing = !!existing
   const [customer, setCustomer] = useState<PickedCustomer | null>(null)
-  const [plan, setPlan] = useState<SubscriptionPlan>('lunch_dinner')
-  const [startDate, setStartDate] = useState(() => formatIST(new Date(), 'YYYY-MM-DD'))
-  const [durationMode, setDurationMode] = useState<'days' | 'end_date'>('days')
+  const [plan, setPlan] = useState<SubscriptionPlan>(existing?.plan ?? 'lunch_dinner')
+  const [startDate, setStartDate] = useState(existing?.start_date ?? formatIST(new Date(), 'YYYY-MM-DD'))
+  const [durationMode, setDurationMode] = useState<'days' | 'end_date'>(editing ? 'end_date' : 'days')
   const [numDays, setNumDays] = useState('26')
-  const [endDateInput, setEndDateInput] = useState('')
-  const [deliveryDays, setDeliveryDays] = useState<number[]>([1, 2, 3, 4, 5, 6])
-  const [priceType, setPriceType] = useState<'normal' | 'custom'>('normal')
-  const [lunchPrice, setLunchPrice] = useState('')
-  const [dinnerPrice, setDinnerPrice] = useState('')
-  const [rotationEnabled, setRotationEnabled] = useState(true)
-  const [rotationAppliesTo, setRotationAppliesTo] = useState<MealType>('dinner')
-  const [rotationStartWith, setRotationStartWith] = useState<'salad' | 'wrap'>('salad')
-  const [notes, setNotes] = useState('')
+  const [endDateInput, setEndDateInput] = useState(existing?.end_date ?? '')
+  const [deliveryDays, setDeliveryDays] = useState<number[]>(existing?.delivery_days ?? [1, 2, 3, 4, 5, 6])
+  const [priceType, setPriceType] = useState<'normal' | 'custom'>(existing?.price_type ?? 'normal')
+  const [lunchPrice, setLunchPrice] = useState(existing?.lunch_price ? String(existing.lunch_price) : '')
+  const [dinnerPrice, setDinnerPrice] = useState(existing?.dinner_price ? String(existing.dinner_price) : '')
+  const [rotationEnabled, setRotationEnabled] = useState(existing?.rotation_enabled ?? true)
+  const [rotationAppliesTo, setRotationAppliesTo] = useState<MealType>(existing?.rotation_applies_to ?? 'dinner')
+  const [rotationStartWith, setRotationStartWith] = useState<'salad' | 'wrap'>(existing?.rotation_start_with ?? 'salad')
+  const [notes, setNotes] = useState(existing?.notes ?? '')
   const [markPaid, setMarkPaid] = useState(false)
 
   const [preview, setPreview] = useState<Preview | null>(null)
@@ -112,18 +119,24 @@ export default function SubscriptionForm({ onCreated }: { onCreated: () => void 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    if (!customer) return setError('Pick a customer')
+    if (!editing && !customer) return setError('Pick a customer')
     if (!endDate || endDate < startDate) return setError('Set a valid duration')
     setBusy(true)
     try {
-      const { obj } = await api.post<{ _id: string }>('/api/admin/subscriptions/add', { user_id: customer.id, ...payload() })
+      if (editing && existing) {
+        await api.patch(`/api/admin/subscriptions/${existing.id}`, payload())
+        show('Subscription updated', 'success')
+        onCreated()
+        return
+      }
+      const { obj } = await api.post<{ _id: string }>('/api/admin/subscriptions/add', { user_id: customer!.id, ...payload() })
       if (markPaid && obj?._id) {
         await api.post(`/api/admin/subscriptions/${obj._id}/mark-paid`, { paid: true })
       }
       show('Subscription created', 'success')
       onCreated()
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Could not create subscription')
+      setError(err instanceof ApiError ? err.message : editing ? 'Could not update subscription' : 'Could not create subscription')
     } finally {
       setBusy(false)
     }
@@ -132,7 +145,15 @@ export default function SubscriptionForm({ onCreated }: { onCreated: () => void 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <CustomerPicker value={customer} onChange={setCustomer} />
+        {editing ? (
+          <div className="rounded-2xl border-2 border-cream-deep bg-cream-soft px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Customer</p>
+            <p className="text-sm font-semibold text-ink">{existing?.user_snapshot.name}</p>
+            <p className="text-xs text-ink-soft">{existing?.user_snapshot.mobile}</p>
+          </div>
+        ) : (
+          <CustomerPicker value={customer} onChange={setCustomer} />
+        )}
         <Select label="Plan" value={plan} onChange={(e) => setPlan(e.target.value as SubscriptionPlan)}>
           <option value="lunch">Lunch only</option>
           <option value="dinner">Dinner only</option>
@@ -210,10 +231,18 @@ export default function SubscriptionForm({ onCreated }: { onCreated: () => void 
 
       <Textarea label="Notes (optional)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
 
-      <label className="flex items-center gap-2 text-sm font-medium text-ink">
-        <input type="checkbox" checked={markPaid} onChange={(e) => setMarkPaid(e.target.checked)} className="h-4 w-4 accent-green" />
-        Amount already paid in full
-      </label>
+      {!editing && (
+        <label className="flex items-center gap-2 text-sm font-medium text-ink">
+          <input type="checkbox" checked={markPaid} onChange={(e) => setMarkPaid(e.target.checked)} className="h-4 w-4 accent-green" />
+          Amount already paid in full
+        </label>
+      )}
+
+      {editing && (
+        <p className="rounded-2xl bg-gold/10 px-4 py-2 text-xs text-ink-soft">
+          Saving regenerates upcoming meals. Meals already marked paid or delivered are kept.
+        </p>
+      )}
 
       {preview && (
         <div className="rounded-2xl bg-green-soft p-4 text-sm text-green-dark">
@@ -236,7 +265,7 @@ export default function SubscriptionForm({ onCreated }: { onCreated: () => void 
       {error && <p className="text-xs font-medium text-red">{error}</p>}
 
       <Button type="submit" full loading={busy}>
-        Create subscription
+        {editing ? 'Save changes' : 'Create subscription'}
       </Button>
     </form>
   )

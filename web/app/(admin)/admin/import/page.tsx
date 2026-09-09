@@ -35,11 +35,11 @@ const SEED = {
     },
     {
       user_name: 'Ragul', user_mobile: '9025008688', plan: 'lunch',
-      start_date: '2026-08-29', end_date: '2026-09-03', lunch_price: 159, paid: true, delivered_through: '2026-09-09',
+      start_date: '2026-08-29', end_date: '2026-09-04', lunch_price: 159, paid: true, delivered_through: '2026-09-09',
     },
     {
       user_name: 'Ragul', user_mobile: '9025008688', plan: 'lunch',
-      start_date: '2026-09-04', end_date: '2026-09-10', lunch_price: 159, paid: true, delivered_through: '2026-09-09',
+      start_date: '2026-09-05', end_date: '2026-09-11', lunch_price: 159, paid: true, delivered_through: '2026-09-09',
     },
   ],
   orders: [
