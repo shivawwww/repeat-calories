@@ -28,6 +28,7 @@ const SEED = {
     { name: 'Vimal', mobile: '9003833903' },
     { name: 'Yuvanesh', mobile: '8637658399' },
     { name: 'Sharvya', mobile: '6369447682' },
+    { name: 'Sreeja', mobile: '9597448119' },
   ],
   subscriptions: [
     {
@@ -146,6 +147,7 @@ const SEED = {
     // Batch 9 — Sep 9
     { customer_name: 'Yuvanesh', customer_mobile: '8637658399', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 150, quantity: 1, paid: true, delivery_state: 'delivered' },
     { customer_name: 'Sharvya', customer_mobile: '6369447682', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 185, quantity: 1, paid: false, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Sreeja', customer_mobile: '9597448119', date: '2026-08-29', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, quantity: 2, paid: true, delivery_state: 'delivered' },
   ],
   expenses: [],
 }
