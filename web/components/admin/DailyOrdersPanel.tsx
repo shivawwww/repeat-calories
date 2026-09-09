@@ -12,6 +12,13 @@ import ManualOrderForm from '@/components/admin/ManualOrderForm'
 
 const money = (n: number) => `₹${n.toLocaleString('en-IN')}`
 
+function shiftDate(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const dt = new Date(Date.UTC(y, m - 1, d))
+  dt.setUTCDate(dt.getUTCDate() + days)
+  return dt.toISOString().slice(0, 10)
+}
+
 export default function DailyOrdersPanel({ onMutate }: { onMutate?: () => void }) {
   const { show } = useToast()
   const [date, setDate] = useState(() => formatIST(new Date(), 'YYYY-MM-DD'))
@@ -80,21 +87,46 @@ export default function DailyOrdersPanel({ onMutate }: { onMutate?: () => void }
     <section className="rounded-3xl border border-cream-deep bg-cream-soft p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-lg font-semibold text-ink">Daily Orders</h2>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="rounded-xl border-2 border-cream-deep bg-white px-3 py-1.5 text-sm text-ink outline-none focus:border-green"
-        />
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setDate((d) => shiftDate(d, -1))}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-cream-deep bg-white text-ink-soft hover:border-green"
+            aria-label="Previous day"
+          >
+            ‹
+          </button>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="rounded-xl border-2 border-cream-deep bg-white px-3 py-1.5 text-sm text-ink outline-none focus:border-green"
+          />
+          <button
+            type="button"
+            onClick={() => setDate((d) => shiftDate(d, 1))}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-cream-deep bg-white text-ink-soft hover:border-green"
+            aria-label="Next day"
+          >
+            ›
+          </button>
+        </div>
       </div>
+
+      <p className="mt-1 text-xs text-ink-soft">{formatIST(date, 'dddd, DD MMM YYYY')}</p>
 
       <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
         <span className="text-green-dark">Received <b className="stat-figure">{money(received)}</b></span>
         <span className="text-gold">Unpaid <b className="stat-figure">{money(unpaid)}</b></span>
-        <label className="ml-auto flex items-center gap-2 font-medium text-ink-soft">
-          <input type="checkbox" checked={showSubs} onChange={(e) => setShowSubs(e.target.checked)} className="h-4 w-4 accent-green" />
-          Include subscription meals
-        </label>
+        <button
+          type="button"
+          onClick={() => setShowSubs((v) => !v)}
+          className={`ml-auto rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${
+            showSubs ? 'bg-green text-cream-soft' : 'bg-cream-deep/50 text-ink-soft'
+          }`}
+        >
+          {showSubs ? '✓ Subscription meals shown' : 'Show subscription meals'}
+        </button>
       </div>
 
       <div className="mt-4 overflow-x-auto">
