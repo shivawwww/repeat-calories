@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
   const source = searchParams.get('source')
   const kind = searchParams.get('kind')
   const subscriptionId = searchParams.get('subscription_id')
+  const payment = searchParams.get('payment')
 
   const filter: Record<string, unknown> = {}
   if (date) {
@@ -26,6 +27,8 @@ export async function GET(req: NextRequest) {
     filter.created_at = { $gte: start, $lte: end }
   }
   if (subscriptionId) filter.subscription_id = subscriptionId
+  if (payment === 'paid') filter.payment_status = 'paid'
+  else if (payment === 'unpaid') filter.payment_status = 'pending'
   // Legacy website orders predate the `source` field — treat missing as 'online'.
   if (source === 'online') filter.source = { $ne: 'manual' }
   else if (source === 'manual') filter.source = 'manual'
