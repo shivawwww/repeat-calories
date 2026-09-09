@@ -17,7 +17,7 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
 ]
 
 export const MEAL_TYPES: MealType[] = ['lunch', 'dinner']
-export const MEAL_VARIANTS: MealVariant[] = ['normal', 'salad', 'wrap', 'custom']
+export const MEAL_VARIANTS: MealVariant[] = ['rice_bowl', 'salad', 'wrap', 'custom']
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = ['lunch', 'dinner', 'lunch_dinner']
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/

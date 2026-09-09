@@ -18,12 +18,14 @@ export async function GET(req: NextRequest) {
   const date = searchParams.get('date')
   const source = searchParams.get('source')
   const kind = searchParams.get('kind')
+  const subscriptionId = searchParams.get('subscription_id')
 
   const filter: Record<string, unknown> = {}
   if (date) {
     const { start, end } = istDayRange(date)
     filter.created_at = { $gte: start, $lte: end }
   }
+  if (subscriptionId) filter.subscription_id = subscriptionId
   // Legacy website orders predate the `source` field — treat missing as 'online'.
   if (source === 'online') filter.source = { $ne: 'manual' }
   else if (source === 'manual') filter.source = 'manual'

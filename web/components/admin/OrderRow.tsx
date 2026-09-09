@@ -78,7 +78,7 @@ export default function OrderRow({
             {order.meal_type && (
               <Badge tone="orange">
                 {order.meal_type}
-                {order.meal_variant && order.meal_variant !== 'normal' ? ` · ${order.meal_variant}` : ''}
+                {order.meal_variant && order.meal_variant !== 'rice_bowl' ? ` · ${order.meal_variant.replace('_', ' ')}` : ''}
               </Badge>
             )}
           </div>

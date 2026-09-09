@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     if (amt === null || amt <= 0) { report.errors.push(`order bad amount: ${JSON.stringify(o)}`); continue }
 
     const meal_type: MealType = MEAL_TYPES.includes(o?.meal_type) ? o.meal_type : 'lunch'
-    const meal_variant: MealVariant = MEAL_VARIANTS.includes(o?.meal_variant) ? o.meal_variant : 'normal'
+    const meal_variant: MealVariant = MEAL_VARIANTS.includes(o?.meal_variant) ? o.meal_variant : 'rice_bowl'
 
     const user = await resolveCustomer(o?.customer_name ?? o?.name ?? 'Customer', mobile)
     if (!user) { report.errors.push(`order unresolved customer: ${JSON.stringify(o)}`); continue }

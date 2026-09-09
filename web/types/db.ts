@@ -94,7 +94,7 @@ export interface OrderItemDoc {
 }
 
 export type MealType = 'lunch' | 'dinner'
-export type MealVariant = 'normal' | 'salad' | 'wrap' | 'custom'
+export type MealVariant = 'rice_bowl' | 'salad' | 'wrap' | 'custom'
 export type OrderSource = 'online' | 'manual'
 export type OrderKind = 'one_time' | 'subscription'
 // Did this meal actually go out? Admin marks it each day. 'skipped' meals don't

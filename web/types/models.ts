@@ -77,7 +77,7 @@ export type OrderStatus =
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
 
 export type MealType = 'lunch' | 'dinner'
-export type MealVariant = 'normal' | 'salad' | 'wrap' | 'custom'
+export type MealVariant = 'rice_bowl' | 'salad' | 'wrap' | 'custom'
 export type OrderSource = 'online' | 'manual'
 export type OrderKind = 'one_time' | 'subscription'
 export type DeliveryState = 'pending' | 'delivered' | 'skipped'

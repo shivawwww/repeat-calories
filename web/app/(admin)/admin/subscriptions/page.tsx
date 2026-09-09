@@ -8,6 +8,7 @@ import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
 import Skeleton from '@/components/ui/Skeleton'
 import SubscriptionForm from '@/components/admin/SubscriptionForm'
+import SubscriptionDeliveries from '@/components/admin/SubscriptionDeliveries'
 import { formatIST } from '@/lib/datetime'
 import { Subscription } from '@/types/models'
 
@@ -23,6 +24,7 @@ export default function AdminSubscriptionsPage() {
   const [subs, setSubs] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [deliveriesFor, setDeliveriesFor] = useState<Subscription | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -114,6 +116,16 @@ export default function AdminSubscriptionsPage() {
         />
       </Modal>
 
+      {deliveriesFor && (
+        <SubscriptionDeliveries
+          subscriptionId={deliveriesFor.id}
+          name={deliveriesFor.user_snapshot.name}
+          open={!!deliveriesFor}
+          onClose={() => setDeliveriesFor(null)}
+          onChange={load}
+        />
+      )}
+
       <div className="mt-6 flex flex-col gap-4">
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-44" />)
@@ -164,8 +176,11 @@ export default function AdminSubscriptionsPage() {
                 )}
 
                 <div className="mt-4 flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => setDeliveriesFor(s)}>
+                    Deliveries
+                  </Button>
                   {st && st.meals_unpaid > 0 && (
-                    <Button size="sm" onClick={() => markPaid(s.id, true)}>
+                    <Button size="sm" variant="ghost" onClick={() => markPaid(s.id, true)}>
                       Mark fully paid
                     </Button>
                   )}
