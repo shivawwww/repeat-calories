@@ -129,6 +129,7 @@ const SEED = {
     { customer_name: 'Rakshana', customer_mobile: '9345718815', date: '2026-09-07', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, quantity: 1, paid: false, delivery_state: 'delivered' },
     { customer_name: 'Rakshana', customer_mobile: '9345718815', date: '2026-09-07', meal_type: 'dinner', meal_variant: 'wrap', amount: 140, quantity: 1, paid: false, delivery_state: 'delivered' },
     { customer_name: 'Rakshana', customer_mobile: '9345718815', date: '2026-09-09', meal_type: 'dinner', meal_variant: 'wrap', amount: 140, quantity: 2, paid: false, delivery_state: 'delivered' },
+    { customer_name: 'Rakshana', customer_mobile: '9345718815', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, quantity: 1, paid: false, delivery_state: 'delivered' },
     { customer_name: 'Pranesh', customer_mobile: '8608662901', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 249, quantity: 1, paid: true, delivery_state: 'delivered' },
 
     // Batch 8 — Vimal, dinner salad/wrap alternate ₹130, unpaid, delivered
