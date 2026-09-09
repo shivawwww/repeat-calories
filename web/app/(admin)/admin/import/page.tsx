@@ -95,8 +95,8 @@ const SEED = {
     { customer_name: 'Pranesh', customer_mobile: '8608662901', date: '2026-09-05', meal_type: 'dinner', meal_variant: 'salad', amount: 130, quantity: 1, paid: true, delivery_state: 'delivered' },
     { customer_name: 'Bingo', customer_mobile: '8610802674', date: '2026-09-05', meal_type: 'dinner', meal_variant: 'salad', amount: 150, quantity: 1, paid: true, delivery_state: 'delivered' },
     { customer_name: 'Venkatesh', customer_mobile: '9994246211', date: '2026-09-05', meal_type: 'dinner', meal_variant: 'salad', amount: 130, quantity: 2, paid: true, delivery_state: 'delivered' },
-    { customer_name: 'Abhilash', customer_mobile: '9003151312', date: '2026-09-05', meal_type: 'dinner', meal_variant: 'salad', amount: 133.33, quantity: 3, paid: true, delivery_state: 'delivered' },
-    { customer_name: 'Abhilash', customer_mobile: '9003151312', date: '2026-09-05', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, quantity: 2, paid: true, delivery_state: 'delivered' },
+    { customer_name: 'Abhilash', customer_mobile: '9003151312', date: '2026-09-05', meal_type: 'dinner', meal_variant: 'salad', amount: 134, quantity: 3, paid: true, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Abhilash', customer_mobile: '9003151312', date: '2026-09-05', meal_type: 'dinner', meal_variant: 'wrap', amount: 129, quantity: 2, paid: true, delivery_state: 'delivered', replace: true },
 
     // Batch 5
     { customer_name: 'Kishore', customer_mobile: '9488561682', date: '2026-09-07', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, quantity: 1, paid: true, delivery_state: 'delivered' },
