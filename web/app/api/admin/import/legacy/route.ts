@@ -4,17 +4,18 @@ import { getDb } from '@/lib/db'
 import { getCurrentAdmin } from '@/lib/auth'
 import { success, fail } from '@/lib/apiResponse'
 import { istDayRange, nowIST } from '@/lib/datetime'
-import { isValidDate, parseAmount, MEAL_TYPES, MEAL_VARIANTS } from '@/lib/adminValidation'
+import { isValidDate, parseAmount, EXPENSE_CATEGORIES, MEAL_TYPES, MEAL_VARIANTS } from '@/lib/adminValidation'
 import { normalizeSubscription } from '@/lib/subscriptionValidation'
 import { buildManualOrder } from '@/lib/manualOrder'
 import { buildSubscriptionOrders } from '@/lib/subscription'
-import { MealType, MealVariant, OrderDoc, SubscriptionDoc, UserDoc } from '@/types/db'
+import { DeliveryState, ExpenseDoc, MealType, MealVariant, OrderDoc, SubscriptionDoc, UserDoc } from '@/types/db'
 
 const norm = (v: string) => v.replace(/[^\d]/g, '')
+const DELIVERY_STATES: DeliveryState[] = ['pending', 'delivered', 'skipped']
 
-// One-shot importer for the pre-platform order history. Safe to run twice —
-// customers dedupe by mobile, orders by (customer, date, meal), subscriptions by
-// (customer, plan, start, end).
+// One-shot importer for the pre-platform history. Safe to run twice — customers
+// dedupe by mobile, orders by (customer, date, meal), subscriptions by
+// (customer, plan, start, end), expenses by (date, category, description, amount).
 export async function POST(req: NextRequest) {
   const admin = await getCurrentAdmin()
   if (!admin) return fail('Unauthorized', 403)
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
   const users = db.collection<UserDoc>('users')
   const ordersCol = db.collection<OrderDoc>('orders')
   const subsCol = db.collection<SubscriptionDoc>('subscriptions')
+  const expensesCol = db.collection<ExpenseDoc>('expenses')
   const now = nowIST()
 
   const report = {
@@ -35,10 +37,14 @@ export async function POST(req: NextRequest) {
     orders_skipped: 0,
     subscriptions_created: 0,
     subscriptions_skipped: 0,
+    subscription_meals: 0,
+    meals_delivered: 0,
+    meals_skipped: 0,
+    expenses_created: 0,
+    expenses_skipped: 0,
     errors: [] as string[],
   }
 
-  // Resolve (creating if needed) a walk-in customer by mobile. Cached per request.
   const cache = new Map<string, UserDoc>()
   async function resolveCustomer(name: string, mobile: string, area?: string): Promise<UserDoc | null> {
     const mob = norm(mobile)
@@ -82,6 +88,7 @@ export async function POST(req: NextRequest) {
     await resolveCustomer(c.name, c.mobile, c.area)
   }
 
+  // ---- One-off / walk-in orders --------------------------------------------
   for (const o of Array.isArray(body.orders) ? body.orders : []) {
     const mobile = o?.customer_mobile ?? o?.mobile
     if (!mobile || !isValidDate(o?.date)) { report.errors.push(`order bad date/mobile: ${JSON.stringify(o)}`); continue }
@@ -90,6 +97,7 @@ export async function POST(req: NextRequest) {
 
     const meal_type: MealType = MEAL_TYPES.includes(o?.meal_type) ? o.meal_type : 'lunch'
     const meal_variant: MealVariant = MEAL_VARIANTS.includes(o?.meal_variant) ? o.meal_variant : 'rice_bowl'
+    const qty = Number.isInteger(o?.quantity) && o.quantity > 0 ? o.quantity : 1
 
     const user = await resolveCustomer(o?.customer_name ?? o?.name ?? 'Customer', mobile)
     if (!user) { report.errors.push(`order unresolved customer: ${JSON.stringify(o)}`); continue }
@@ -109,14 +117,20 @@ export async function POST(req: NextRequest) {
       meal_type,
       meal_variant,
       amount: amt,
-      paid: o?.paid !== false, // default paid — historical money already received
+      quantity: qty,
+      paid: o?.paid !== false,
       notes: o?.notes,
       numberKind: 'legacy',
     })
+    if (DELIVERY_STATES.includes(o?.delivery_state) && o.delivery_state !== 'pending') {
+      order.delivery_state = o.delivery_state
+      order.delivery_marked_at = now
+    }
     await ordersCol.insertOne(order)
     report.orders_created++
   }
 
+  // ---- Subscriptions ------------------------------------------------------
   for (const s of Array.isArray(body.subscriptions) ? body.subscriptions : []) {
     const mobile = s?.user_mobile ?? s?.mobile
     const user = mobile ? await resolveCustomer(s?.user_name ?? s?.name ?? 'Customer', mobile, s?.area) : null
@@ -147,16 +161,57 @@ export async function POST(req: NextRequest) {
       created_at: now,
       updated_at: now,
     }
+
     const genOrders = await buildSubscriptionOrders(db, sub)
-    // Historical subscription meals were already paid for.
+    const paid = s?.paid !== false
+    const deliveredThrough: string | null = isValidDate(s?.delivered_through) ? s.delivered_through : null
+    const skips: { date: string; meal_type: string }[] = Array.isArray(s?.skip) ? s.skip : []
+    const skipKey = new Set(skips.map((x) => `${x.date}|${x.meal_type}`))
+
     for (const go of genOrders) {
-      if (s?.paid !== false) { go.payment_status = 'paid'; go.paid_at = go.created_at }
+      const day = go.created_at.slice(0, 10)
+      if (paid) { go.payment_status = 'paid'; go.paid_at = go.created_at }
+      if (skipKey.has(`${day}|${go.meal_type}`)) {
+        go.delivery_state = 'skipped'
+        go.delivery_marked_at = now
+        report.meals_skipped++
+      } else if (deliveredThrough && day <= deliveredThrough) {
+        go.delivery_state = 'delivered'
+        go.delivery_marked_at = now
+        report.meals_delivered++
+      }
     }
+
     if (genOrders.length) await ordersCol.insertMany(genOrders)
     sub.generated_count = genOrders.length
     sub.total_amount = genOrders.reduce((acc, go) => acc + go.total_amount, 0)
     await subsCol.insertOne(sub)
     report.subscriptions_created++
+    report.subscription_meals += genOrders.length
+  }
+
+  // ---- Expenses ---------------------------------------------------------
+  for (const e of Array.isArray(body.expenses) ? body.expenses : []) {
+    if (!isValidDate(e?.date)) { report.errors.push(`expense bad date: ${JSON.stringify(e)}`); continue }
+    const amt = parseAmount(e?.amount)
+    if (amt === null || amt <= 0) { report.errors.push(`expense bad amount: ${JSON.stringify(e)}`); continue }
+    const category = EXPENSE_CATEGORIES.includes(e?.category) ? e.category : 'other'
+    const description = typeof e?.description === 'string' && e.description.trim() ? e.description.trim() : category
+
+    const dup = await expensesCol.findOne({ date: e.date, category, description, amount: amt })
+    if (dup) { report.expenses_skipped++; continue }
+
+    await expensesCol.insertOne({
+      _id: randomUUID(),
+      date: e.date,
+      category,
+      description,
+      amount: amt,
+      created_by: admin.userId,
+      created_at: now,
+      updated_at: now,
+    })
+    report.expenses_created++
   }
 
   return success('Import complete', report)
