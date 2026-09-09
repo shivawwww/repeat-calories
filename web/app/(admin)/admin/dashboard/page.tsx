@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { api, withIds } from '@/lib/api'
+import { useToast } from '@/components/ui/Toast'
+import Button from '@/components/ui/Button'
 import StatCard from '@/components/admin/StatCard'
 import DailyOrdersPanel from '@/components/admin/DailyOrdersPanel'
 import ExpensesPanel from '@/components/admin/ExpensesPanel'
@@ -24,14 +26,33 @@ interface Summary {
 const money = (n: number) => `₹${n.toLocaleString('en-IN')}`
 
 export default function AdminDashboardPage() {
+  const { show } = useToast()
   const [summary, setSummary] = useState<Summary | null>(null)
   const [recent, setRecent] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [wiping, setWiping] = useState(false)
 
   const loadSummary = useCallback(async () => {
     const s = await api.get<Summary>('/api/admin/analytics/summary')
     setSummary(s.obj)
   }, [])
+
+  async function resetAll() {
+    if (prompt('This deletes ALL orders, subscriptions, expenses and customers. Type DELETE to confirm.') !== 'DELETE') return
+    setWiping(true)
+    try {
+      const { obj } = await api.post<Record<string, number>>('/api/admin/reset', { confirm: 'DELETE EVERYTHING' })
+      show(
+        `Wiped: ${obj.orders} orders, ${obj.subscriptions} subs, ${obj.expenses} expenses, ${obj.walkin_customers} customers`,
+        'success'
+      )
+      window.location.reload()
+    } catch {
+      show('Reset failed', 'error')
+    } finally {
+      setWiping(false)
+    }
+  }
 
   useEffect(() => {
     Promise.all([
@@ -100,6 +121,16 @@ export default function AdminDashboardPage() {
             ))
           )}
         </div>
+      </div>
+
+      <div className="mt-8 rounded-3xl border border-red/30 bg-red-soft/40 p-5">
+        <p className="text-sm font-semibold text-red">Danger zone</p>
+        <p className="mt-1 text-xs text-ink-soft">
+          Permanently deletes every order, subscription, expense and walk-in customer. Your login and the menu are kept.
+        </p>
+        <Button variant="danger" size="sm" className="mt-3" loading={wiping} onClick={resetAll}>
+          Reset all data
+        </Button>
       </div>
     </div>
   )
