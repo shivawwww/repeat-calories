@@ -149,7 +149,48 @@ const SEED = {
     { customer_name: 'Sharvya', customer_mobile: '6369447682', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 185, quantity: 1, paid: false, delivery_state: 'delivered', replace: true },
     { customer_name: 'Sreeja', customer_mobile: '9597448119', date: '2026-08-29', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, quantity: 2, paid: true, delivery_state: 'delivered' },
   ],
-  expenses: [],
+  expenses: [
+    // 26 Aug – 2 Sep (no per-day breakdown given — bucketed on Aug 26)
+    { date: '2026-08-26', category: 'chicken', description: 'chicken', amount: 2100 },
+    { date: '2026-08-26', category: 'groceries', description: 'corn', amount: 200 },
+    { date: '2026-08-26', category: 'groceries', description: 'veggies', amount: 250 },
+    { date: '2026-08-26', category: 'packaging', description: 'packing', amount: 1165 },
+    { date: '2026-08-26', category: 'packaging', description: 'stickers', amount: 200 },
+    { date: '2026-08-26', category: 'groceries', description: 'groceries', amount: 1978 },
+    // 2 Sep
+    { date: '2026-09-02', category: 'chicken', description: 'chicken', amount: 525 },
+    { date: '2026-09-02', category: 'groceries', description: 'yogurt & lettuce', amount: 400 },
+    // 3 Sep
+    { date: '2026-09-03', category: 'chicken', description: 'chicken', amount: 1300 },
+    { date: '2026-09-03', category: 'groceries', description: 'corn', amount: 100 },
+    // 4 Sep
+    { date: '2026-09-04', category: 'groceries', description: 'corn', amount: 100 },
+    { date: '2026-09-04', category: 'chicken', description: 'chicken', amount: 525 },
+    { date: '2026-09-04', category: 'chicken', description: 'chicken (2)', amount: 900 },
+    { date: '2026-09-04', category: 'groceries', description: 'groceries', amount: 225 },
+    { date: '2026-09-04', category: 'packaging', description: 'packing', amount: 90 },
+    { date: '2026-09-04', category: 'groceries', description: 'veggies & egg', amount: 56 },
+    { date: '2026-09-04', category: 'packaging', description: 'packing (2)', amount: 350 },
+    // 5 Sep
+    { date: '2026-09-05', category: 'chicken', description: 'chicken', amount: 525 },
+    // 7 Sep
+    { date: '2026-09-07', category: 'chicken', description: 'chicken & corn', amount: 800 },
+    { date: '2026-09-07', category: 'groceries', description: 'yogurt', amount: 250 },
+    { date: '2026-09-07', category: 'chicken', description: 'chicken', amount: 560 },
+    { date: '2026-09-07', category: 'groceries', description: 'curd', amount: 40 },
+    { date: '2026-09-07', category: 'packaging', description: 'packing', amount: 250 },
+    // 8 Sep
+    { date: '2026-09-08', category: 'groceries', description: 'paneer & lettuce', amount: 200 },
+    { date: '2026-09-08', category: 'chicken', description: 'chicken', amount: 300 },
+    { date: '2026-09-08', category: 'delivery', description: 'delivery', amount: 300 },
+    // 9 Sep
+    { date: '2026-09-09', category: 'groceries', description: 'groceries', amount: 175 },
+    { date: '2026-09-09', category: 'packaging', description: 'packing', amount: 980 },
+    { date: '2026-09-09', category: 'chicken', description: 'chicken', amount: 410 },
+    { date: '2026-09-09', category: 'chicken', description: 'chicken (2)', amount: 290 },
+    { date: '2026-09-09', category: 'groceries', description: 'groceries (2)', amount: 975 },
+    { date: '2026-09-09', category: 'chicken', description: 'chicken (3)', amount: 789 },
+  ],
 }
 
 export default function AdminImportPage() {
