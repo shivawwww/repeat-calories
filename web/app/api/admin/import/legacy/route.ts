@@ -103,14 +103,20 @@ export async function POST(req: NextRequest) {
     if (!user) { report.errors.push(`order unresolved customer: ${JSON.stringify(o)}`); continue }
 
     const { start, end } = istDayRange(o.date)
-    const dup = await ordersCol.findOne({
+    const match = {
       user_id: user._id,
-      source: 'manual',
+      source: 'manual' as const,
       meal_type,
       meal_variant,
       created_at: { $gte: start, $lte: end },
-    })
-    if (dup) { report.orders_skipped++; continue }
+    }
+    if (o?.replace === true) {
+      // Overwrite: drop any existing matching line, then re-insert below.
+      await ordersCol.deleteMany(match)
+    } else {
+      const dup = await ordersCol.findOne(match)
+      if (dup) { report.orders_skipped++; continue }
+    }
 
     const order = await buildManualOrder(db, {
       user,
