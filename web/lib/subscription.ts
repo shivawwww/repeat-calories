@@ -12,7 +12,7 @@ import {
 
 const TITLE: Record<MealType, string> = { lunch: 'Lunch', dinner: 'Dinner' }
 const VARIANT_LABEL: Record<MealVariant, string> = {
-  normal: 'Normal',
+  rice_bowl: 'Rice Bowl',
   salad: 'Salad',
   wrap: 'Wrap',
   custom: 'Custom',
@@ -26,7 +26,7 @@ export function mealLabel(meal: MealType, variant: MealVariant): string {
 function mealsForDay(sub: SubscriptionInput, dayIndex: number): { meal_type: MealType; meal_variant: MealVariant; amount: number }[] {
   const rotate = (meal: MealType): MealVariant => {
     if (!sub.rotation_enabled || sub.plan !== 'lunch_dinner' || sub.rotation_applies_to !== meal) {
-      return 'normal'
+      return 'rice_bowl'
     }
     const other = sub.rotation_start_with === 'salad' ? 'wrap' : 'salad'
     return dayIndex % 2 === 0 ? sub.rotation_start_with : other

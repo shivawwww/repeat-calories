@@ -16,7 +16,7 @@ interface Line {
   amount: string // unit price
 }
 
-const emptyLine = (): Line => ({ meal_type: 'lunch', meal_variant: 'normal', qty: '1', amount: '' })
+const emptyLine = (): Line => ({ meal_type: 'lunch', meal_variant: 'rice_bowl', qty: '1', amount: '' })
 const money = (n: number) => `₹${n.toLocaleString('en-IN')}`
 
 export default function ManualOrderForm({ date, onAdded }: { date: string; onAdded: () => void }) {
@@ -97,7 +97,7 @@ export default function ManualOrderForm({ date, onAdded }: { date: string; onAdd
               value={l.meal_variant}
               onChange={(e) => update(i, { meal_variant: e.target.value as MealVariant })}
             >
-              <option value="normal">Normal</option>
+              <option value="rice_bowl">Rice Bowl</option>
               <option value="salad">Salad</option>
               <option value="wrap">Wrap</option>
               <option value="custom">Custom</option>

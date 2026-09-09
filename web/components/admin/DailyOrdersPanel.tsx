@@ -123,7 +123,7 @@ export default function DailyOrdersPanel({ onMutate }: { onMutate?: () => void }
                     </td>
                     <td className="py-2.5 pr-3 capitalize text-ink-soft">
                       {o.meal_type ?? '—'}
-                      {o.meal_variant && o.meal_variant !== 'normal' ? ` · ${o.meal_variant}` : ''}
+                      {o.meal_variant && o.meal_variant !== 'rice_bowl' ? ` · ${o.meal_variant.replace('_', ' ')}` : ''}
                       {(o.items[0]?.quantity ?? 1) > 1 ? ` ×${o.items[0].quantity}` : ''}
                     </td>
                     <td className="py-2.5 pr-3">
