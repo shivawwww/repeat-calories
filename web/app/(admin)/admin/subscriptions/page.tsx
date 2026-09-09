@@ -25,6 +25,8 @@ export default function AdminSubscriptionsPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [deliveriesFor, setDeliveriesFor] = useState<Subscription | null>(null)
+  const [editingSub, setEditingSub] = useState<Subscription | null>(null)
+  const [filter, setFilter] = useState<'active' | 'all' | 'paused' | 'ended'>('active')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -116,6 +118,18 @@ export default function AdminSubscriptionsPage() {
         />
       </Modal>
 
+      <Modal open={!!editingSub} onClose={() => setEditingSub(null)} title="Edit subscription">
+        {editingSub && (
+          <SubscriptionForm
+            existing={editingSub}
+            onCreated={() => {
+              setEditingSub(null)
+              load()
+            }}
+          />
+        )}
+      </Modal>
+
       {deliveriesFor && (
         <SubscriptionDeliveries
           subscriptionId={deliveriesFor.id}
@@ -126,13 +140,29 @@ export default function AdminSubscriptionsPage() {
         />
       )}
 
-      <div className="mt-6 flex flex-col gap-4">
+      <div className="mt-5 flex gap-2">
+        {(['active', 'paused', 'ended', 'all'] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition-colors ${
+              filter === f ? 'bg-green text-cream-soft' : 'bg-cream-deep/50 text-ink-soft hover:bg-cream-deep'
+            }`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 flex flex-col gap-4">
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-44" />)
-        ) : subs.length === 0 ? (
-          <p className="py-16 text-center text-sm text-ink-soft">No subscriptions yet.</p>
         ) : (
-          subs.map((s) => {
+          (() => {
+            const visible = filter === 'all' ? subs : subs.filter((s) => s.status === filter)
+            if (visible.length === 0)
+              return <p className="py-16 text-center text-sm text-ink-soft">No {filter === 'all' ? '' : filter} subscriptions.</p>
+            return visible.map((s) => {
             const st = s.stats
             const fullyPaid = st ? st.meals_unpaid === 0 && st.meals_paid > 0 : false
             return (
@@ -140,7 +170,13 @@ export default function AdminSubscriptionsPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-display text-base font-bold text-ink">{s.user_snapshot.name}</p>
+                      <button
+                        type="button"
+                        onClick={() => setEditingSub(s)}
+                        className="font-display text-base font-bold text-ink hover:text-green hover:underline"
+                      >
+                        {s.user_snapshot.name}
+                      </button>
                       <Badge tone={s.status === 'active' ? 'green' : s.status === 'paused' ? 'gold' : 'neutral'}>{s.status}</Badge>
                       <Badge tone={fullyPaid ? 'green' : 'gold'}>{fullyPaid ? 'paid' : 'payment due'}</Badge>
                     </div>
@@ -179,6 +215,9 @@ export default function AdminSubscriptionsPage() {
                   <Button size="sm" onClick={() => setDeliveriesFor(s)}>
                     Deliveries
                   </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingSub(s)}>
+                    Edit
+                  </Button>
                   {st && st.meals_unpaid > 0 && (
                     <Button size="sm" variant="ghost" onClick={() => markPaid(s.id, true)}>
                       Mark fully paid
@@ -216,7 +255,8 @@ export default function AdminSubscriptionsPage() {
                 </div>
               </div>
             )
-          })
+            })
+          })()
         )}
       </div>
     </div>

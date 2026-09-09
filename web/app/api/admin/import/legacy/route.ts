@@ -3,7 +3,7 @@ import { randomBytes, randomUUID } from 'crypto'
 import { getDb } from '@/lib/db'
 import { getCurrentAdmin } from '@/lib/auth'
 import { success, fail } from '@/lib/apiResponse'
-import { istDayRange, nowIST } from '@/lib/datetime'
+import { istDayRange, nowIST, todayISTDate } from '@/lib/datetime'
 import { isValidDate, parseAmount, EXPENSE_CATEGORIES, MEAL_TYPES, MEAL_VARIANTS } from '@/lib/adminValidation'
 import { normalizeSubscription } from '@/lib/subscriptionValidation'
 import { buildManualOrder } from '@/lib/manualOrder'
@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
       user_id: user._id,
       user_snapshot: { name: user.name, mobile: user.mobile },
       ...normalized,
-      status: 'active',
+      status: normalized.end_date < todayISTDate() ? 'ended' : 'active',
       generated_count: 0,
       total_amount: 0,
       created_at: now,
