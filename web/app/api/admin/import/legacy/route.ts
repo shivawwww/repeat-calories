@@ -3,7 +3,7 @@ import { randomBytes, randomUUID } from 'crypto'
 import { getDb } from '@/lib/db'
 import { getCurrentAdmin } from '@/lib/auth'
 import { success, fail } from '@/lib/apiResponse'
-import { istDayRange, nowIST, todayISTDate } from '@/lib/datetime'
+import { istDateAtNoon, istDayRange, nowIST, todayISTDate } from '@/lib/datetime'
 import { isValidDate, parseAmount, EXPENSE_CATEGORIES, MEAL_TYPES, MEAL_VARIANTS } from '@/lib/adminValidation'
 import { normalizeSubscription } from '@/lib/subscriptionValidation'
 import { buildManualOrder } from '@/lib/manualOrder'
@@ -149,13 +149,27 @@ export async function POST(req: NextRequest) {
       continue
     }
 
+    const paidAt = istDateAtNoon(normalized.start_date) // prepaid up front, not per meal
+
     const existing = await subsCol.findOne({
       user_id: user._id,
       plan: normalized.plan,
       start_date: normalized.start_date,
       end_date: normalized.end_date,
     })
-    if (existing) { report.subscriptions_skipped++; continue }
+    if (existing) {
+      // Already imported — just correct the paid_at on its paid meals so a
+      // prepaid subscription doesn't dribble into "Received Today".
+      if (s?.paid !== false) {
+        const r = await ordersCol.updateMany(
+          { subscription_id: existing._id, payment_status: 'paid' },
+          { $set: { paid_at: paidAt, updated_at: now } }
+        )
+        if (r.modifiedCount) report.errors.push(`resynced paid_at for ${r.modifiedCount} meals of ${user.name}`)
+      }
+      report.subscriptions_skipped++
+      continue
+    }
 
     const sub: SubscriptionDoc = {
       _id: randomUUID(),
@@ -177,7 +191,7 @@ export async function POST(req: NextRequest) {
 
     for (const go of genOrders) {
       const day = go.created_at.slice(0, 10)
-      if (paid) { go.payment_status = 'paid'; go.paid_at = go.created_at }
+      if (paid) { go.payment_status = 'paid'; go.paid_at = paidAt }
       if (skipKey.has(`${day}|${go.meal_type}`)) {
         go.delivery_state = 'skipped'
         go.delivery_marked_at = now
