@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button'
 import StatCard from '@/components/admin/StatCard'
 import DailyOrdersPanel from '@/components/admin/DailyOrdersPanel'
 import ExpensesPanel from '@/components/admin/ExpensesPanel'
+import OutstandingPanel from '@/components/admin/OutstandingPanel'
 import OrderStatusBadge from '@/components/order/OrderStatusBadge'
 import Skeleton from '@/components/ui/Skeleton'
 import { formatIST } from '@/lib/datetime'
@@ -81,6 +82,10 @@ export default function AdminDashboardPage() {
           <StatCard label="Total Orders" value={String(summary?.total_orders ?? 0)} icon="📦" tone="orange" />
         </div>
       )}
+
+      <div className="mt-8">
+        <OutstandingPanel onMutate={loadSummary} />
+      </div>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-2">
         <DailyOrdersPanel onMutate={loadSummary} />
