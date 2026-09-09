@@ -1,6 +1,7 @@
 import { getDb } from '@/lib/db'
 import { getCurrentAdmin } from '@/lib/auth'
 import { success, fail } from '@/lib/apiResponse'
+import { nowIST, todayISTDate } from '@/lib/datetime'
 import { OrderDoc, SubscriptionDoc } from '@/types/db'
 
 export async function GET() {
@@ -8,6 +9,13 @@ export async function GET() {
   if (!admin) return fail('Unauthorized', 403)
 
   const db = await getDb()
+
+  // Auto-retire subscriptions whose last delivery day has passed.
+  const today = todayISTDate()
+  await db
+    .collection<SubscriptionDoc>('subscriptions')
+    .updateMany({ status: 'active', end_date: { $lt: today } }, { $set: { status: 'ended', updated_at: nowIST() } })
+
   const subs = await db
     .collection<SubscriptionDoc>('subscriptions')
     .find({})

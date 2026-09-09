@@ -15,6 +15,7 @@ const money = (n: number) => `₹${n.toLocaleString('en-IN')}`
 export default function DailyOrdersPanel({ onMutate }: { onMutate?: () => void }) {
   const { show } = useToast()
   const [date, setDate] = useState(() => formatIST(new Date(), 'YYYY-MM-DD'))
+  const [showSubs, setShowSubs] = useState(false)
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -22,12 +23,14 @@ export default function DailyOrdersPanel({ onMutate }: { onMutate?: () => void }
     setLoading(true)
     try {
       const { obj } = await api.get<(Order & { _id: string })[]>(`/api/admin/orders/getall?date=${date}`)
-      // Subscription meals are tracked on the Subscriptions page, not here.
-      setOrders(withIds(obj).filter((o) => o.order_kind !== 'subscription'))
+      const all = withIds(obj)
+      // Subscription meals are normally tracked on the Subscriptions page; the
+      // toggle brings them in so this doubles as a full "what to cook" list.
+      setOrders(showSubs ? all : all.filter((o) => o.order_kind !== 'subscription'))
     } finally {
       setLoading(false)
     }
-  }, [date])
+  }, [date, showSubs])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount / on date change
@@ -85,9 +88,13 @@ export default function DailyOrdersPanel({ onMutate }: { onMutate?: () => void }
         />
       </div>
 
-      <div className="mt-3 flex gap-4 text-sm">
+      <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
         <span className="text-green-dark">Received <b className="stat-figure">{money(received)}</b></span>
         <span className="text-gold">Unpaid <b className="stat-figure">{money(unpaid)}</b></span>
+        <label className="ml-auto flex items-center gap-2 font-medium text-ink-soft">
+          <input type="checkbox" checked={showSubs} onChange={(e) => setShowSubs(e.target.checked)} className="h-4 w-4 accent-green" />
+          Include subscription meals
+        </label>
       </div>
 
       <div className="mt-4 overflow-x-auto">
