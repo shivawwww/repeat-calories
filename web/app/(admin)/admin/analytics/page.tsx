@@ -13,8 +13,8 @@ interface ItemSale {
 
 interface Summary {
   total_revenue: number
-  orders_today: number
-  pending_count: number
+  total_orders: number
+  total_unpaid: number
 }
 
 export default function AdminAnalyticsPage() {
@@ -43,9 +43,9 @@ export default function AdminAnalyticsPage() {
         </div>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <StatCard label="Total Revenue" value={`₹${summary?.total_revenue ?? 0}`} icon="💰" tone="green" />
-          <StatCard label="Orders Today" value={String(summary?.orders_today ?? 0)} icon="📦" tone="orange" />
-          <StatCard label="Menu Items Sold" value={String(items.reduce((s, i) => s + i.total_qty, 0))} icon="🍽️" tone="gold" />
+          <StatCard label="Total Revenue" value={`₹${(summary?.total_revenue ?? 0).toLocaleString('en-IN')}`} icon="💰" tone="green" />
+          <StatCard label="Total Orders" value={String(summary?.total_orders ?? 0)} icon="📦" tone="orange" />
+          <StatCard label="Meals Sold" value={String(items.reduce((s, i) => s + i.total_qty, 0))} icon="🍽️" tone="gold" />
         </div>
       )}
 

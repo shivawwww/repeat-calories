@@ -15,12 +15,11 @@ import { Order } from '@/types/models'
 
 interface Summary {
   total_revenue: number
-  orders_today: number
-  pending_count: number
   today_received: number
-  today_unpaid: number
-  today_expenses: number
-  net_today: number
+  total_unpaid: number
+  total_expenses: number
+  net: number
+  total_orders: number
 }
 
 const money = (n: number) => `₹${n.toLocaleString('en-IN')}`
@@ -76,10 +75,10 @@ export default function AdminDashboardPage() {
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard label="Total Revenue" value={money(summary?.total_revenue ?? 0)} icon="💰" tone="green" />
           <StatCard label="Received Today" value={money(summary?.today_received ?? 0)} icon="✅" tone="green" />
-          <StatCard label="Unpaid Today" value={money(summary?.today_unpaid ?? 0)} icon="⏳" tone="gold" />
-          <StatCard label="Expenses Today" value={money(summary?.today_expenses ?? 0)} icon="🧾" tone="orange" />
-          <StatCard label="Net Today" value={money(summary?.net_today ?? 0)} icon="📈" tone={(summary?.net_today ?? 0) >= 0 ? 'green' : 'orange'} />
-          <StatCard label="Orders Today" value={String(summary?.orders_today ?? 0)} icon="📦" tone="orange" />
+          <StatCard label="Total Unpaid" value={money(summary?.total_unpaid ?? 0)} icon="⏳" tone="gold" />
+          <StatCard label="Total Expenses" value={money(summary?.total_expenses ?? 0)} icon="🧾" tone="orange" />
+          <StatCard label="Net" value={money(summary?.net ?? 0)} icon="📈" tone={(summary?.net ?? 0) >= 0 ? 'green' : 'orange'} />
+          <StatCard label="Total Orders" value={String(summary?.total_orders ?? 0)} icon="📦" tone="orange" />
         </div>
       )}
 

@@ -15,40 +15,37 @@ export async function GET() {
   const today = todayISTDate()
   const { start, end } = istDayRange(today)
 
-  const [revenueRows, receivedRows, unpaidRows, ordersToday, pendingCount, expenseRows] = await Promise.all([
-    // Money actually collected, all time (Razorpay captures + manual marked paid).
+  const [revenueRows, receivedRows, unpaidRows, totalOrders, expenseRows] = await Promise.all([
+    // Money actually collected, all time.
     orders.aggregate<{ total: number }>([
       { $match: { payment_status: 'paid' } },
       { $group: { _id: null, total: { $sum: '$total_amount' } } },
     ]).toArray(),
-    // Collected today — keyed by when the money landed, not the order's service date.
+    // Collected today — keyed by when the money landed.
     orders.aggregate<{ total: number }>([
       { $match: { payment_status: 'paid', paid_at: { $gte: start, $lte: end } } },
       { $group: { _id: null, total: { $sum: '$total_amount' } } },
     ]).toArray(),
-    // Owed for today's meals but not yet paid.
+    // Everything still owed, all time.
     orders.aggregate<{ total: number }>([
-      { $match: { payment_status: 'pending', created_at: { $gte: start, $lte: end } } },
+      { $match: { payment_status: 'pending', status: { $ne: 'cancelled' } } },
       { $group: { _id: null, total: { $sum: '$total_amount' } } },
     ]).toArray(),
-    orders.countDocuments({ created_at: { $gte: start, $lte: end } }),
-    orders.countDocuments({ status: 'pending' }),
+    orders.countDocuments({}),
     db.collection<ExpenseDoc>('expenses').aggregate<{ total: number }>([
-      { $match: { date: today } },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]).toArray(),
   ])
 
-  const today_received = sumField(receivedRows)
-  const today_expenses = sumField(expenseRows)
+  const total_revenue = sumField(revenueRows)
+  const total_expenses = sumField(expenseRows)
 
   return success('Analytics summary fetched', {
-    total_revenue: sumField(revenueRows),
-    orders_today: ordersToday,
-    pending_count: pendingCount,
-    today_received,
-    today_unpaid: sumField(unpaidRows),
-    today_expenses,
-    net_today: Math.round((today_received - today_expenses) * 100) / 100,
+    total_revenue,
+    today_received: sumField(receivedRows),
+    total_unpaid: sumField(unpaidRows),
+    total_expenses,
+    net: Math.round((total_revenue - total_expenses) * 100) / 100,
+    total_orders: totalOrders,
   })
 }
