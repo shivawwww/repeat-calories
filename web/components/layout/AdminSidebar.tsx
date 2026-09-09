@@ -15,6 +15,7 @@ const LINKS = [
   { href: '/admin/users', label: 'Users', icon: IconUsers },
   { href: '/admin/analytics', label: 'Analytics', icon: IconChart },
   { href: '/admin/notifications', label: 'Notifications', icon: IconBell },
+  { href: '/admin/import', label: 'Import', icon: IconGrid },
 ]
 
 export default function AdminSidebar() {
