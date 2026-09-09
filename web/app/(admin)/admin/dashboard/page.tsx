@@ -84,7 +84,7 @@ export default function AdminDashboardPage() {
       )}
 
       <div className="mt-8">
-        <OutstandingPanel onMutate={loadSummary} />
+        <OutstandingPanel total={summary?.total_unpaid ?? 0} onMutate={loadSummary} />
       </div>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-2">
