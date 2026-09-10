@@ -65,7 +65,7 @@ const SEED = {
     { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-08', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 130, paid: false, delivery_state: 'delivered' },
     { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, paid: false, delivery_state: 'delivered' },
     { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-10', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 130, paid: false },
-    { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-11', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, paid: false },
+    { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-11', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, paid: false, delete: true }, // Anjali stopped
     { customer_name: 'Vishwa', customer_mobile: '8220710970', date: '2026-09-11', meal_type: 'dinner', meal_variant: 'wrap', amount: 170, paid: false, notes: 'Make-up for Sep 7 dinner' },
 
     // Walk-in / one-off orders — all paid, all delivered
