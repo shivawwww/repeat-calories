@@ -110,6 +110,11 @@ export async function POST(req: NextRequest) {
       meal_variant,
       created_at: { $gte: start, $lte: end },
     }
+    if (o?.delete === true) {
+      const r = await ordersCol.deleteMany(match)
+      if (r.deletedCount) report.errors.push(`deleted ${r.deletedCount} order(s): ${user.name} ${o.date} ${meal_type} ${meal_variant}`)
+      continue
+    }
     if (o?.replace === true) {
       // Overwrite: drop any existing matching line, then re-insert below.
       await ordersCol.deleteMany(match)
