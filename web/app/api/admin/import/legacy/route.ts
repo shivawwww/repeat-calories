@@ -181,20 +181,11 @@ export async function POST(req: NextRequest) {
       end_date: normalized.end_date,
     })
     if (existing) {
-      // Already imported — apply light corrections without regenerating meals.
-      if (s?.paid !== false) {
-        const r = await ordersCol.updateMany(
-          { subscription_id: existing._id, payment_status: 'paid' },
-          { $set: { paid_at: paidAt, updated_at: now } }
-        )
-        if (r.modifiedCount) report.errors.push(`resynced paid_at for ${r.modifiedCount} meals of ${user.name}`)
-      }
-      if ((s?.status === 'ended' || s?.status === 'paused' || s?.status === 'active') && s.status !== existing.status) {
-        await subsCol.updateOne({ _id: existing._id }, { $set: { status: s.status, updated_at: now } })
-        report.errors.push(`set ${user.name} subscription -> ${s.status}`)
-      }
-      report.subscriptions_skipped++
-      continue
+      // Rebuild it from the seed so the import stays authoritative. Every field
+      // (status, prices, paid, delivered_through) is re-applied below.
+      await ordersCol.deleteMany({ subscription_id: existing._id })
+      await subsCol.deleteOne({ _id: existing._id })
+      report.errors.push(`rebuilt ${user.name}'s subscription`)
     }
 
     const forcedStatus =
