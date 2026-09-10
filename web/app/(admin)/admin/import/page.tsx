@@ -47,12 +47,8 @@ const SEED = {
     // Arjit went daily-orders — remove his old subscriptions; lunches are individual orders below.
     { user_name: 'Arjit', user_mobile: '8124025297', plan: 'lunch', start_date: '2026-09-04', end_date: '2026-09-07', lunch_price: 159, delete: true },
     { user_name: 'Arjit', user_mobile: '8124025297', plan: 'lunch', start_date: '2026-09-08', end_date: '2026-09-11', lunch_price: 190, delete: true },
-    {
-      user_name: 'Vimal', user_mobile: '9003833903', plan: 'dinner',
-      start_date: '2026-08-31', end_date: '2026-09-11', delivery_days: [1, 2, 3, 5], dinner_price: 130,
-      rotation_enabled: true, rotation_applies_to: 'dinner', rotation_start_with: 'salad',
-      paid: false, delivered_through: '2026-09-09',
-    },
+    // Vimal is a daily-order customer, not a subscription — remove any sub, orders are below.
+    { user_name: 'Vimal', user_mobile: '9003833903', plan: 'dinner', start_date: '2026-08-31', end_date: '2026-09-11', dinner_price: 130, delete: true },
     {
       user_name: 'Ragul', user_mobile: '9025008688', plan: 'lunch',
       start_date: '2026-08-29', end_date: '2026-09-04', lunch_price: 159, paid: true, delivered_through: '2026-09-09',
@@ -143,14 +139,15 @@ const SEED = {
     { customer_name: 'Rakshana', customer_mobile: '9345718815', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, quantity: 1, paid: false, delivery_state: 'delivered' },
     { customer_name: 'Pranesh', customer_mobile: '8608662901', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 249, quantity: 1, paid: true, delivery_state: 'delivered' },
 
-    // Vimal — old individual orders removed; now a subscription (see below)
-    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-08-31', meal_type: 'dinner', meal_variant: 'salad', amount: 130, delete: true },
-    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-01', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, delete: true },
-    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-02', meal_type: 'dinner', meal_variant: 'salad', amount: 130, delete: true },
-    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-04', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, delete: true },
-    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-07', meal_type: 'dinner', meal_variant: 'salad', amount: 130, delete: true },
-    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-08', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, delete: true },
-    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-09', meal_type: 'dinner', meal_variant: 'salad', amount: 130, delete: true },
+    // Vimal — daily dinner orders, salad/wrap alternate ₹130, unpaid, delivered
+    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-08-31', meal_type: 'dinner', meal_variant: 'salad', amount: 130, quantity: 1, paid: false, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-01', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, quantity: 1, paid: false, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-02', meal_type: 'dinner', meal_variant: 'salad', amount: 130, quantity: 1, paid: false, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-04', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, quantity: 1, paid: false, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-07', meal_type: 'dinner', meal_variant: 'salad', amount: 130, quantity: 1, paid: false, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-08', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, quantity: 1, paid: false, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-09', meal_type: 'dinner', meal_variant: 'salad', amount: 130, quantity: 1, paid: false, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Vimal', customer_mobile: '9003833903', date: '2026-09-11', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, quantity: 1, paid: false, delivery_state: 'delivered', replace: true },
 
     // Batch 9 — Sep 9
     { customer_name: 'Yuvanesh', customer_mobile: '8637658399', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 150, quantity: 1, paid: true, delivery_state: 'delivered' },
