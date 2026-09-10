@@ -181,8 +181,7 @@ export async function POST(req: NextRequest) {
       end_date: normalized.end_date,
     })
     if (existing) {
-      // Already imported — just correct the paid_at on its paid meals so a
-      // prepaid subscription doesn't dribble into "Received Today".
+      // Already imported — apply light corrections without regenerating meals.
       if (s?.paid !== false) {
         const r = await ordersCol.updateMany(
           { subscription_id: existing._id, payment_status: 'paid' },
@@ -190,16 +189,22 @@ export async function POST(req: NextRequest) {
         )
         if (r.modifiedCount) report.errors.push(`resynced paid_at for ${r.modifiedCount} meals of ${user.name}`)
       }
+      if ((s?.status === 'ended' || s?.status === 'paused' || s?.status === 'active') && s.status !== existing.status) {
+        await subsCol.updateOne({ _id: existing._id }, { $set: { status: s.status, updated_at: now } })
+        report.errors.push(`set ${user.name} subscription -> ${s.status}`)
+      }
       report.subscriptions_skipped++
       continue
     }
 
+    const forcedStatus =
+      s?.status === 'ended' || s?.status === 'paused' || s?.status === 'active' ? s.status : null
     const sub: SubscriptionDoc = {
       _id: randomUUID(),
       user_id: user._id,
       user_snapshot: { name: user.name, mobile: user.mobile },
       ...normalized,
-      status: normalized.end_date < todayISTDate() ? 'ended' : 'active',
+      status: forcedStatus ?? (normalized.end_date < todayISTDate() ? 'ended' : 'active'),
       generated_count: 0,
       total_amount: 0,
       created_at: now,
