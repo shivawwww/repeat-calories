@@ -148,6 +148,10 @@ const SEED = {
     { customer_name: 'Yuvanesh', customer_mobile: '8637658399', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 150, quantity: 1, paid: true, delivery_state: 'delivered' },
     { customer_name: 'Sharvya', customer_mobile: '6369447682', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 185, quantity: 1, paid: false, delivery_state: 'delivered', replace: true },
     { customer_name: 'Sreeja', customer_mobile: '9597448119', date: '2026-08-29', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, quantity: 2, paid: true, delivery_state: 'delivered' },
+
+    // Sep 10 — Anjali extras on top of her subscription lunch
+    { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-10', meal_type: 'dinner', meal_variant: 'salad', amount: 145, quantity: 1, paid: false, delivery_state: 'delivered' },
+    { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-10', meal_type: 'dinner', meal_variant: 'wrap', amount: 150, quantity: 1, paid: false, delivery_state: 'delivered' },
   ],
   expenses: [
     // 26 Aug – 2 Sep (no per-day breakdown given — bucketed on Aug 26)
