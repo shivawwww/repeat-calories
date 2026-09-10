@@ -25,7 +25,7 @@ export function mealLabel(meal: MealType, variant: MealVariant): string {
 // The meals a subscription delivers on the Nth delivery day (0-based index).
 function mealsForDay(sub: SubscriptionInput, dayIndex: number): { meal_type: MealType; meal_variant: MealVariant; amount: number }[] {
   const rotate = (meal: MealType): MealVariant => {
-    if (!sub.rotation_enabled || sub.plan !== 'lunch_dinner' || sub.rotation_applies_to !== meal) {
+    if (!sub.rotation_enabled || sub.rotation_applies_to !== meal) {
       return 'rice_bowl'
     }
     const other = sub.rotation_start_with === 'salad' ? 'wrap' : 'salad'
