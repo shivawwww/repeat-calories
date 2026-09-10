@@ -51,7 +51,8 @@ export function normalizeSubscription(
 
   const rotation_applies_to: MealType = body.rotation_applies_to === 'lunch' ? 'lunch' : 'dinner'
   const rotation_start_with: 'salad' | 'wrap' = body.rotation_start_with === 'wrap' ? 'wrap' : 'salad'
-  const rotation_enabled = plan === 'lunch_dinner' && !!body.rotation_enabled
+  const planHasMeal = rotation_applies_to === 'lunch' ? needsLunch : needsDinner
+  const rotation_enabled = !!body.rotation_enabled && planHasMeal
 
   return {
     plan,

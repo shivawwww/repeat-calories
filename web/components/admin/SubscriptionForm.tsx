@@ -88,8 +88,8 @@ export default function SubscriptionForm({
       price_type: priceType,
       lunch_price: needsLunch ? Number(lunchPrice) || 0 : undefined,
       dinner_price: needsDinner ? Number(dinnerPrice) || 0 : undefined,
-      rotation_enabled: plan === 'lunch_dinner' && rotationEnabled,
-      rotation_applies_to: rotationAppliesTo,
+      rotation_enabled: rotationEnabled,
+      rotation_applies_to: plan === 'lunch' ? 'lunch' : plan === 'dinner' ? 'dinner' : rotationAppliesTo,
       rotation_start_with: rotationStartWith,
       notes: notes.trim() || undefined,
     }),
@@ -208,26 +208,26 @@ export default function SubscriptionForm({
         {needsDinner && <Input label="Dinner price / day (₹)" inputMode="decimal" value={dinnerPrice} onChange={(e) => setDinnerPrice(e.target.value)} />}
       </div>
 
-      {plan === 'lunch_dinner' && (
-        <div className="rounded-2xl border border-cream-deep bg-white/60 p-4">
-          <label className="flex items-center gap-2 text-sm font-medium text-ink">
-            <input type="checkbox" checked={rotationEnabled} onChange={(e) => setRotationEnabled(e.target.checked)} className="h-4 w-4 accent-green" />
-            Alternate salad / wrap
-          </label>
-          {rotationEnabled && (
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+      <div className="rounded-2xl border border-cream-deep bg-white/60 p-4">
+        <label className="flex items-center gap-2 text-sm font-medium text-ink">
+          <input type="checkbox" checked={rotationEnabled} onChange={(e) => setRotationEnabled(e.target.checked)} className="h-4 w-4 accent-green" />
+          Alternate salad / wrap
+        </label>
+        {rotationEnabled && (
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {plan === 'lunch_dinner' && (
               <Select label="On which meal" value={rotationAppliesTo} onChange={(e) => setRotationAppliesTo(e.target.value as MealType)}>
                 <option value="lunch">Lunch</option>
                 <option value="dinner">Dinner</option>
               </Select>
-              <Select label="Day 1 is" value={rotationStartWith} onChange={(e) => setRotationStartWith(e.target.value as 'salad' | 'wrap')}>
-                <option value="salad">Salad</option>
-                <option value="wrap">Wrap</option>
-              </Select>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+            <Select label="Day 1 is" value={rotationStartWith} onChange={(e) => setRotationStartWith(e.target.value as 'salad' | 'wrap')}>
+              <option value="salad">Salad</option>
+              <option value="wrap">Wrap</option>
+            </Select>
+          </div>
+        )}
+      </div>
 
       <Textarea label="Notes (optional)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
 
