@@ -43,14 +43,9 @@ const SEED = {
       rotation_enabled: true, rotation_applies_to: 'dinner', rotation_start_with: 'wrap',
       paid: true, delivered_through: '2026-09-09',
     },
-    {
-      user_name: 'Arjit', user_mobile: '8124025297', plan: 'lunch',
-      start_date: '2026-09-04', end_date: '2026-09-07', lunch_price: 159, paid: false, delivered_through: '2026-09-09',
-    },
-    {
-      user_name: 'Arjit', user_mobile: '8124025297', plan: 'lunch',
-      start_date: '2026-09-08', end_date: '2026-09-11', lunch_price: 190, paid: false, delivered_through: '2026-09-09',
-    },
+    // Arjit went daily-orders — remove his old subscriptions; lunches are individual orders below.
+    { user_name: 'Arjit', user_mobile: '8124025297', plan: 'lunch', start_date: '2026-09-04', end_date: '2026-09-07', lunch_price: 159, delete: true },
+    { user_name: 'Arjit', user_mobile: '8124025297', plan: 'lunch', start_date: '2026-09-08', end_date: '2026-09-11', lunch_price: 190, delete: true },
     {
       user_name: 'Ragul', user_mobile: '9025008688', plan: 'lunch',
       start_date: '2026-08-29', end_date: '2026-09-04', lunch_price: 159, paid: true, delivered_through: '2026-09-09',
@@ -80,6 +75,12 @@ const SEED = {
     { customer_name: 'Vignesh Ravikumar', customer_mobile: '9444872677', date: '2026-09-01', meal_type: 'dinner', meal_variant: 'wrap', amount: 130, quantity: 2, paid: true, delivery_state: 'delivered' },
     { customer_name: 'Arjit', customer_mobile: '8124025297', date: '2026-09-02', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 159, quantity: 1, paid: true, delivery_state: 'delivered' },
     { customer_name: 'Arjit', customer_mobile: '8124025297', date: '2026-09-03', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 159, quantity: 1, paid: true, delivery_state: 'delivered' },
+    { customer_name: 'Arjit', customer_mobile: '8124025297', date: '2026-09-04', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 159, quantity: 1, paid: true, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Arjit', customer_mobile: '8124025297', date: '2026-09-05', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 159, quantity: 1, paid: true, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Arjit', customer_mobile: '8124025297', date: '2026-09-07', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 159, quantity: 1, paid: true, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Arjit', customer_mobile: '8124025297', date: '2026-09-08', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 190, quantity: 1, paid: true, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Arjit', customer_mobile: '8124025297', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 190, quantity: 1, paid: true, delivery_state: 'delivered', replace: true },
+    { customer_name: 'Arjit', customer_mobile: '8124025297', date: '2026-09-10', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, quantity: 1, paid: true, delivery_state: 'delivered', replace: true },
     { customer_name: 'Riyas', customer_mobile: '8189999299', date: '2026-09-03', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 159, quantity: 1, paid: true, delivery_state: 'delivered' },
     { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-03', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 159, quantity: 1, paid: true, delivery_state: 'delivered' },
 
