@@ -154,6 +154,24 @@ export async function POST(req: NextRequest) {
       continue
     }
 
+    if (s?.delete === true) {
+      const q = {
+        user_id: user._id,
+        plan: normalized.plan,
+        start_date: normalized.start_date,
+        end_date: normalized.end_date,
+      }
+      const toDelete = await subsCol.find(q).toArray()
+      let meals = 0
+      for (const doomed of toDelete) {
+        const r = await ordersCol.deleteMany({ subscription_id: doomed._id })
+        meals += r.deletedCount
+      }
+      const subGone = await subsCol.deleteMany(q)
+      if (subGone.deletedCount) report.errors.push(`deleted ${subGone.deletedCount} subscription(s) + ${meals} meals for ${user.name}`)
+      continue
+    }
+
     const paidAt = istDateAtNoon(normalized.start_date) // prepaid up front, not per meal
 
     const existing = await subsCol.findOne({
