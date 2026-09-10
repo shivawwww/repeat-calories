@@ -26,9 +26,16 @@ export async function GET() {
       { $match: { payment_status: 'paid', paid_at: { $gte: start, $lte: end } } },
       { $group: { _id: null, total: { $sum: '$total_amount' } } },
     ]).toArray(),
-    // Everything still owed, all time.
+    // Money we can actually ask for = unpaid meals already delivered (or whose
+    // service date has passed) — not future subscription meals, not skipped ones.
     orders.aggregate<{ total: number }>([
-      { $match: { payment_status: 'pending', status: { $ne: 'cancelled' } } },
+      {
+        $match: {
+          payment_status: 'pending',
+          delivery_state: { $ne: 'skipped' },
+          created_at: { $lte: end },
+        },
+      },
       { $group: { _id: null, total: { $sum: '$total_amount' } } },
     ]).toArray(),
     orders.countDocuments({}),

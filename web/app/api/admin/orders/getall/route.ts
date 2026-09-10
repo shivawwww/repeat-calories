@@ -3,7 +3,7 @@ import { Filter } from 'mongodb'
 import { getDb } from '@/lib/db'
 import { getCurrentAdmin } from '@/lib/auth'
 import { success, fail } from '@/lib/apiResponse'
-import { istDayRange } from '@/lib/datetime'
+import { istDayRange, todayISTDate } from '@/lib/datetime'
 import { OrderDoc } from '@/types/db'
 
 // GET /api/admin/orders/getall
@@ -29,6 +29,12 @@ export async function GET(req: NextRequest) {
   if (subscriptionId) filter.subscription_id = subscriptionId
   if (payment === 'paid') filter.payment_status = 'paid'
   else if (payment === 'unpaid') filter.payment_status = 'pending'
+  else if (payment === 'owed') {
+    // Unpaid AND already delivered / past service date (not future, not skipped).
+    filter.payment_status = 'pending'
+    filter.delivery_state = { $ne: 'skipped' }
+    filter.created_at = { ...(filter.created_at as object), $lte: istDayRange(todayISTDate()).end }
+  }
   // Legacy website orders predate the `source` field — treat missing as 'online'.
   if (source === 'online') filter.source = { $ne: 'manual' }
   else if (source === 'manual') filter.source = 'manual'
