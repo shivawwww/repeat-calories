@@ -30,7 +30,7 @@ export default function OutstandingPanel({ total, onMutate }: { total: number; o
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const { obj } = await api.get<(Order & { _id: string })[]>('/api/admin/orders/getall?payment=unpaid')
+      const { obj } = await api.get<(Order & { _id: string })[]>('/api/admin/orders/getall?payment=owed')
       const orders = withIds(obj)
       const map = new Map<string, Group>()
       for (const o of orders) {
