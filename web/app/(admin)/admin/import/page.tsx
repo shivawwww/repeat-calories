@@ -65,6 +65,12 @@ const SEED = {
       start_date: '2026-09-05', end_date: '2026-09-11', lunch_price: 159, paid: true,
       status: 'ended', delivered_through: '2026-09-11',
     },
+    {
+      // Sub 3 — new, from Sep 10, 6 delivery days (Sep 10, 11, 12, 14, 15, 16).
+      user_name: 'Ragul', user_mobile: '9025008688', plan: 'lunch',
+      start_date: '2026-09-10', end_date: '2026-09-16', lunch_price: 159, paid: false,
+      status: 'active', delivered_through: '2026-09-11',
+    },
   ],
   orders: [
     { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-07', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, paid: false, delivery_state: 'delivered' },
