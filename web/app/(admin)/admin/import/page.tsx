@@ -68,7 +68,7 @@ const SEED = {
     {
       // Sub 3 — new, from Sep 10, 6 delivery days (Sep 10, 11, 12, 14, 15, 16).
       user_name: 'Ragul', user_mobile: '9025008688', plan: 'lunch',
-      start_date: '2026-09-10', end_date: '2026-09-16', lunch_price: 159, paid: false,
+      start_date: '2026-09-10', end_date: '2026-09-16', lunch_price: 169, paid: false,
       status: 'active', delivered_through: '2026-09-11',
     },
   ],
