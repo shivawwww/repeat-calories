@@ -33,10 +33,12 @@ const SEED = {
   ],
   subscriptions: [
     {
+      // Ending as-is: 6 lunch + 5 delivered dinners (Sep 7 dinner skipped, no
+      // make-up) = 1320 + 850 = 2170, matching what Vishwa actually paid.
       user_name: 'Vishwa', user_mobile: '8220710970', plan: 'lunch_dinner',
       start_date: '2026-09-04', end_date: '2026-09-10', lunch_price: 220, dinner_price: 170,
       rotation_enabled: true, rotation_applies_to: 'dinner', rotation_start_with: 'wrap',
-      paid: false, delivered_through: '2026-09-09', skip: [{ date: '2026-09-07', meal_type: 'dinner' }],
+      paid: true, status: 'ended', delivered_through: '2026-09-10', skip: [{ date: '2026-09-07', meal_type: 'dinner' }],
     },
     {
       user_name: 'Tamil', user_mobile: '9360329755', plan: 'lunch_dinner',
@@ -78,7 +80,7 @@ const SEED = {
     { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-09', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, paid: false, delivery_state: 'delivered' },
     { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-10', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, paid: false, delivery_state: 'delivered', replace: true }, // plan stopped — regular ₹160
     { customer_name: 'Anjali', customer_mobile: '9025374278', date: '2026-09-11', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 160, paid: false, delete: true }, // Anjali stopped
-    { customer_name: 'Vishwa', customer_mobile: '8220710970', date: '2026-09-11', meal_type: 'dinner', meal_variant: 'wrap', amount: 170, paid: false, notes: 'Make-up for Sep 7 dinner' },
+    { customer_name: 'Vishwa', customer_mobile: '8220710970', date: '2026-09-11', meal_type: 'dinner', meal_variant: 'wrap', amount: 170, paid: false, delete: true }, // no make-up — ending as paid (2170)
 
     // Walk-in / one-off orders — all paid, all delivered
     { customer_name: 'Abhilash', customer_mobile: '9003151312', date: '2026-08-29', meal_type: 'lunch', meal_variant: 'rice_bowl', amount: 150, quantity: 2, paid: true, delivery_state: 'delivered' },
