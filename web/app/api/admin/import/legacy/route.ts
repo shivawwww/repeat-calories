@@ -210,8 +210,8 @@ export async function POST(req: NextRequest) {
 
     for (const go of genOrders) {
       const day = go.created_at.slice(0, 10)
-      if (paid) { go.payment_status = 'paid'; go.paid_at = paidAt }
-      if (skipKey.has(`${day}|${go.meal_type}`)) {
+      const isSkipped = skipKey.has(`${day}|${go.meal_type}`)
+      if (isSkipped) {
         go.delivery_state = 'skipped'
         go.delivery_marked_at = now
         report.meals_skipped++
@@ -220,6 +220,9 @@ export async function POST(req: NextRequest) {
         go.delivery_marked_at = now
         report.meals_delivered++
       }
+      // A skipped meal was never delivered — never bill for it, even if the
+      // subscription as a whole is marked paid.
+      if (paid && !isSkipped) { go.payment_status = 'paid'; go.paid_at = paidAt }
     }
 
     if (genOrders.length) await ordersCol.insertMany(genOrders)
