@@ -67,11 +67,13 @@ const SEED = {
       start_date: '2026-09-05', end_date: '2026-09-11', lunch_price: 159, paid: true,
       status: 'ended', delivered_through: '2026-09-11',
     },
+    // Sub 3 cancelled after 2 meals — remove the old Sep10-16 version first.
+    { user_name: 'Ragul', user_mobile: '9025008688', plan: 'lunch', start_date: '2026-09-10', end_date: '2026-09-16', lunch_price: 169, delete: true },
     {
-      // Sub 3 — new, from Sep 10, 6 delivery days (Sep 10, 11, 12, 14, 15, 16).
+      // Sub 3 — cut short to just the 2 delivered days. He owes 338, not the full plan.
       user_name: 'Ragul', user_mobile: '9025008688', plan: 'lunch',
-      start_date: '2026-09-10', end_date: '2026-09-16', lunch_price: 169, paid: false,
-      status: 'active', delivered_through: '2026-09-11',
+      start_date: '2026-09-10', end_date: '2026-09-11', lunch_price: 169, paid: false,
+      status: 'ended', delivered_through: '2026-09-11',
     },
   ],
   orders: [
