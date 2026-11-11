@@ -77,10 +77,8 @@ export type OrderStatus =
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
 
 export type MealType = 'lunch' | 'dinner'
-export type MealVariant = 'rice_bowl' | 'salad' | 'wrap' | 'custom'
+export type MealVariant = 'standard' | 'custom'
 export type OrderSource = 'online' | 'manual'
-export type OrderKind = 'one_time' | 'subscription'
-export type DeliveryState = 'pending' | 'delivered' | 'skipped'
 
 export interface OrderItem {
   menu_item_id: string
@@ -105,12 +103,8 @@ export interface Order {
   payment_status: PaymentStatus
   paid_at?: string
   source?: OrderSource
-  order_kind?: OrderKind
-  subscription_id?: string
   meal_type?: MealType
   meal_variant?: MealVariant
-  delivery_state?: DeliveryState
-  delivery_marked_at?: string
   razorpay?: {
     razorpay_order_id: string
     razorpay_payment_id?: string
@@ -122,45 +116,20 @@ export interface Order {
   updated_at: string
 }
 
-export type SubscriptionPlan = 'lunch' | 'dinner' | 'lunch_dinner'
-export type SubscriptionStatus = 'active' | 'paused' | 'ended'
-
-export interface Subscription {
-  id: string
-  user_id: string
-  user_snapshot: { name: string; mobile: string }
-  plan: SubscriptionPlan
-  start_date: string
-  end_date: string
-  delivery_days: number[]
-  lunch_price?: number
-  dinner_price?: number
-  price_type: 'normal' | 'custom'
-  rotation_enabled: boolean
-  rotation_applies_to: MealType
-  rotation_start_with: 'salad' | 'wrap'
-  status: SubscriptionStatus
-  notes?: string
-  generated_count: number
-  total_amount: number
-  created_at: string
-  updated_at: string
-  // Attached by GET /api/admin/subscriptions/getall — live rollup of the
-  // generated orders (days = distinct service dates, not meal count).
-  stats?: SubscriptionStats
+export interface DayPrices {
+  sun: number
+  mon: number
+  tue: number
+  wed: number
+  thu: number
+  fri: number
+  sat: number
 }
 
-export interface SubscriptionStats {
-  meals_total: number
-  meals_delivered: number
-  meals_skipped: number
-  meals_remaining: number // not yet marked delivered/skipped
-  days_total: number
-  days_delivered: number
-  amount_paid: number
-  amount_unpaid: number
-  meals_paid: number
-  meals_unpaid: number
+export interface PricingSettings {
+  lunch: DayPrices
+  dinner: DayPrices
+  updated_at: string
 }
 
 export type ExpenseCategory =

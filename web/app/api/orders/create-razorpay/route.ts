@@ -97,7 +97,6 @@ export async function POST(req: NextRequest) {
     total_amount,
     payment_method,
     source: 'online',
-    order_kind: 'one_time',
     notes,
     created_at: now,
     updated_at: now,

@@ -5,6 +5,7 @@ import { api, withIds } from '@/lib/api'
 import { useToast } from '@/components/ui/Toast'
 import Skeleton from '@/components/ui/Skeleton'
 import Button from '@/components/ui/Button'
+import Modal from '@/components/ui/Modal'
 import { IconChevronRight } from '@/components/ui/icons'
 import { formatIST } from '@/lib/datetime'
 import { Order } from '@/types/models'
@@ -16,7 +17,7 @@ interface Group {
   name: string
   mobile: string
   total: number
-  ids: string[]
+  orders: Order[]
   oldest: string
 }
 
@@ -26,6 +27,7 @@ export default function OutstandingPanel({ total, onMutate }: { total: number; o
   const [groups, setGroups] = useState<Group[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [busyKey, setBusyKey] = useState<string | null>(null)
+  const [viewing, setViewing] = useState<Group | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -37,9 +39,9 @@ export default function OutstandingPanel({ total, onMutate }: { total: number; o
         const key = o.user_snapshot.mobile || o.user_id
         const g =
           map.get(key) ??
-          { key, name: o.user_snapshot.name, mobile: o.user_snapshot.mobile, total: 0, ids: [], oldest: o.created_at }
+          { key, name: o.user_snapshot.name, mobile: o.user_snapshot.mobile, total: 0, orders: [], oldest: o.created_at }
         g.total += o.total_amount
-        g.ids.push(o.id)
+        g.orders.push(o)
         if (o.created_at < g.oldest) g.oldest = o.created_at
         map.set(key, g)
       }
@@ -58,10 +60,11 @@ export default function OutstandingPanel({ total, onMutate }: { total: number; o
   async function markPaid(g: Group) {
     setBusyKey(g.key)
     try {
-      for (const id of g.ids) {
-        await api.patch(`/api/admin/orders/${id}/payment`, { paid: true })
+      for (const o of g.orders) {
+        await api.patch(`/api/admin/orders/${o.id}/payment`, { paid: true })
       }
       show(`${g.name} marked paid (${money(g.total)})`, 'success')
+      setViewing(null)
       load()
       onMutate?.()
     } catch {
@@ -70,6 +73,10 @@ export default function OutstandingPanel({ total, onMutate }: { total: number; o
       setBusyKey(null)
     }
   }
+
+  const viewingOrders = viewing
+    ? [...viewing.orders].sort((a, b) => (a.created_at < b.created_at ? -1 : 1))
+    : []
 
   return (
     <section className="rounded-3xl border border-cream-deep bg-cream-soft p-6">
@@ -89,24 +96,57 @@ export default function OutstandingPanel({ total, onMutate }: { total: number; o
             <p className="py-6 text-center text-sm text-ink-soft">Everyone is paid up.</p>
           ) : (
             groups.map((g) => (
-              <div key={g.key} className="flex flex-wrap items-center justify-between gap-3 py-3">
+              <button
+                key={g.key}
+                type="button"
+                onClick={() => setViewing(g)}
+                className="flex flex-wrap items-center justify-between gap-3 py-3 text-left"
+              >
                 <div className="min-w-0">
                   <p className="font-semibold text-ink">{g.name}</p>
                   <p className="text-xs text-ink-soft">
-                    {g.mobile} · {g.ids.length} order{g.ids.length > 1 ? 's' : ''} · since {formatIST(g.oldest, 'DD MMM')}
+                    {g.mobile} · {g.orders.length} order{g.orders.length > 1 ? 's' : ''} · since {formatIST(g.oldest, 'DD MMM')}
                   </p>
                 </div>
-                <div className="flex shrink-0 items-center gap-3">
+                <div className="flex shrink-0 items-center gap-2">
                   <span className="stat-figure font-semibold text-ink">{money(g.total)}</span>
-                  <Button size="sm" loading={busyKey === g.key} onClick={() => markPaid(g)}>
-                    Mark paid
-                  </Button>
+                  <IconChevronRight className="h-4 w-4 text-ink-soft" />
                 </div>
-              </div>
+              </button>
             ))
           )}
         </div>
       )}
+
+      <Modal open={!!viewing} onClose={() => setViewing(null)} title={viewing ? `${viewing.name} — unpaid meals` : undefined}>
+        {viewing && (
+          <>
+            <div className="flex flex-col divide-y divide-cream-deep">
+              {viewingOrders.map((o) => (
+                <div key={o.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                  <div className="min-w-0">
+                    <p className="font-medium capitalize text-ink">
+                      {formatIST(o.created_at, 'DD MMM YYYY')} · {o.meal_type ?? '—'}
+                      {o.meal_variant === 'custom' ? ' · custom' : ''}
+                      {(o.items[0]?.quantity ?? 1) > 1 ? ` ×${o.items[0].quantity}` : ''}
+                    </p>
+                    <p className="text-xs text-ink-soft">{o.order_number}</p>
+                  </div>
+                  <span className="stat-figure shrink-0 font-semibold text-ink">{money(o.total_amount)}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-cream-deep pt-4">
+              <span className="text-sm text-ink-soft">
+                Total <b className="stat-figure text-ink">{money(viewing.total)}</b>
+              </span>
+              <Button size="sm" loading={busyKey === viewing.key} onClick={() => markPaid(viewing)}>
+                Mark all paid
+              </Button>
+            </div>
+          </>
+        )}
+      </Modal>
     </section>
   )
 }

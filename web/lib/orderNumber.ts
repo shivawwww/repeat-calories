@@ -2,15 +2,14 @@ import { Db } from 'mongodb'
 import { currentISTYear } from '@/lib/datetime'
 import { CounterDoc } from '@/types/db'
 
-// 'online' is the public website series (RC-2026-0001). Manual / subscription /
-// imported orders use their own prefixes and their own counters so they never
-// inflate or interleave the customer-facing numbering.
-export type OrderNumberKind = 'online' | 'manual' | 'subscription' | 'legacy'
+// 'online' is the public website series (RC-2026-0001). Manual / imported
+// orders use their own prefixes and their own counters so they never inflate
+// or interleave the customer-facing numbering.
+export type OrderNumberKind = 'online' | 'manual' | 'legacy'
 
 const PREFIX: Record<OrderNumberKind, string> = {
   online: 'RC-',
   manual: 'RC-M-',
-  subscription: 'RC-S-',
   legacy: 'RC-H-',
 }
 

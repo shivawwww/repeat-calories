@@ -94,12 +94,8 @@ export interface OrderItemDoc {
 }
 
 export type MealType = 'lunch' | 'dinner'
-export type MealVariant = 'rice_bowl' | 'salad' | 'wrap' | 'custom'
+export type MealVariant = 'standard' | 'custom'
 export type OrderSource = 'online' | 'manual'
-export type OrderKind = 'one_time' | 'subscription'
-// Did this meal actually go out? Admin marks it each day. 'skipped' meals don't
-// count as delivered and can be made up by extending the subscription.
-export type DeliveryState = 'pending' | 'delivered' | 'skipped'
 
 export interface OrderDoc {
   _id: string
@@ -117,15 +113,10 @@ export interface OrderDoc {
   // Set the moment money actually lands — Razorpay capture, or an admin marking a
   // manual order paid. Drives the dashboard "Today Received" figure.
   paid_at?: string
-  // 'online' = placed by a customer through the website; 'manual' = logged by the
-  // admin (walk-in order or auto-generated from a subscription).
+  // 'online' = placed by a customer through the website; 'manual' = logged by the admin.
   source?: OrderSource
-  order_kind?: OrderKind
-  subscription_id?: string
   meal_type?: MealType
   meal_variant?: MealVariant
-  delivery_state?: DeliveryState
-  delivery_marked_at?: string
   razorpay?: {
     razorpay_order_id: string
     razorpay_payment_id?: string
@@ -137,29 +128,22 @@ export interface OrderDoc {
   updated_at: string
 }
 
-export type SubscriptionPlan = 'lunch' | 'dinner' | 'lunch_dinner'
-export type SubscriptionStatus = 'active' | 'paused' | 'ended'
+// Standard price per weekday for a meal. 0 means "no standard price that day"
+// (e.g. kitchen closed) — the order form won't auto-fill, forcing Custom.
+export interface DayPrices {
+  sun: number
+  mon: number
+  tue: number
+  wed: number
+  thu: number
+  fri: number
+  sat: number
+}
 
-export interface SubscriptionDoc {
+export interface PricingSettingsDoc {
   _id: string
-  user_id: string
-  user_snapshot: { name: string; mobile: string }
-  plan: SubscriptionPlan
-  start_date: string // 'YYYY-MM-DD' IST
-  end_date: string // 'YYYY-MM-DD' IST
-  delivery_days: number[] // weekday numbers, 0=Sun .. 6=Sat
-  lunch_price?: number
-  dinner_price?: number
-  price_type: 'normal' | 'custom'
-  // Alternating salad / wrap on one meal slot — only meaningful for 'lunch_dinner'.
-  rotation_enabled: boolean
-  rotation_applies_to: MealType
-  rotation_start_with: 'salad' | 'wrap'
-  status: SubscriptionStatus
-  notes?: string
-  generated_count: number
-  total_amount: number
-  created_at: string
+  lunch: DayPrices
+  dinner: DayPrices
   updated_at: string
 }
 

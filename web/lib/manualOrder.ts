@@ -2,8 +2,14 @@ import { Db } from 'mongodb'
 import { v4 as uuidv4 } from 'uuid'
 import { generateOrderNumber, OrderNumberKind } from '@/lib/orderNumber'
 import { istDateAtNoon, nowIST } from '@/lib/datetime'
-import { mealLabel } from '@/lib/subscription'
 import { MealType, MealVariant, OrderDoc, UserDoc } from '@/types/db'
+
+const MEAL_TITLE: Record<MealType, string> = { lunch: 'Lunch', dinner: 'Dinner' }
+const VARIANT_LABEL: Record<MealVariant, string> = { standard: 'Standard', custom: 'Custom' }
+
+export function mealLabel(meal: MealType, variant: MealVariant): string {
+  return `${MEAL_TITLE[meal]} — ${VARIANT_LABEL[variant]}`
+}
 
 export interface ManualOrderInput {
   user: Pick<UserDoc, '_id' | 'name' | 'mobile' | 'email' | 'addresses'>
@@ -52,7 +58,6 @@ export async function buildManualOrder(db: Db, input: ManualOrderInput): Promise
     payment_status: input.paid ? 'paid' : 'pending',
     paid_at: input.paid ? istDateAtNoon(input.date) : undefined,
     source: 'manual',
-    order_kind: 'one_time',
     meal_type: input.meal_type,
     meal_variant: input.meal_variant,
     notes: input.notes,

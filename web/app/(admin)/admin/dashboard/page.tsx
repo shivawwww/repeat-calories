@@ -9,7 +9,6 @@ import StatCard from '@/components/admin/StatCard'
 import DailyOrdersPanel from '@/components/admin/DailyOrdersPanel'
 import ExpensesPanel from '@/components/admin/ExpensesPanel'
 import OutstandingPanel from '@/components/admin/OutstandingPanel'
-import OrderStatusBadge from '@/components/order/OrderStatusBadge'
 import Skeleton from '@/components/ui/Skeleton'
 import { formatIST } from '@/lib/datetime'
 import { Order } from '@/types/models'
@@ -38,12 +37,12 @@ export default function AdminDashboardPage() {
   }, [])
 
   async function resetAll() {
-    if (prompt('This deletes ALL orders, subscriptions, expenses and customers. Type DELETE to confirm.') !== 'DELETE') return
+    if (prompt('This deletes ALL orders, expenses and customers. Type DELETE to confirm.') !== 'DELETE') return
     setWiping(true)
     try {
       const { obj } = await api.post<Record<string, number>>('/api/admin/reset', { confirm: 'DELETE EVERYTHING' })
       show(
-        `Wiped: ${obj.orders} orders, ${obj.subscriptions} subs, ${obj.expenses} expenses, ${obj.walkin_customers} customers`,
+        `Wiped: ${obj.orders} orders, ${obj.expenses} expenses, ${obj.walkin_customers} customers`,
         'success'
       )
       window.location.reload()
@@ -119,7 +118,13 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
                   <span className="stat-figure font-semibold text-ink">₹{o.total_amount}</span>
-                  <OrderStatusBadge status={o.status} />
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-bold ${
+                      o.payment_status === 'paid' ? 'bg-green-soft text-green-dark' : 'bg-gold/15 text-gold'
+                    }`}
+                  >
+                    {o.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
+                  </span>
                 </div>
               </Link>
             ))
@@ -130,7 +135,7 @@ export default function AdminDashboardPage() {
       <div className="mt-8 rounded-3xl border border-red/30 bg-red-soft/40 p-5">
         <p className="text-sm font-semibold text-red">Danger zone</p>
         <p className="mt-1 text-xs text-ink-soft">
-          Permanently deletes every order, subscription, expense and walk-in customer. Your login and the menu are kept.
+          Permanently deletes every order, expense and walk-in customer. Your login and the menu are kept.
         </p>
         <Button variant="danger" size="sm" className="mt-3" loading={wiping} onClick={resetAll}>
           Reset all data

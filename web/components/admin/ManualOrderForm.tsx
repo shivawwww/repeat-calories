@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api, ApiError } from '@/lib/api'
 import { useToast } from '@/components/ui/Toast'
 import Button from '@/components/ui/Button'
 import { Input, Select } from '@/components/ui/Input'
 import { IconPlus, IconTrash } from '@/components/ui/icons'
+import { weekdayKey } from '@/lib/datetime'
 import CustomerPicker, { PickedCustomer } from '@/components/admin/CustomerPicker'
-import { MealType, MealVariant } from '@/types/models'
+import { MealType, MealVariant, PricingSettings } from '@/types/models'
 
 interface Line {
   meal_type: MealType
@@ -16,22 +17,81 @@ interface Line {
   amount: string // unit price
 }
 
-const emptyLine = (): Line => ({ meal_type: 'lunch', meal_variant: 'rice_bowl', qty: '1', amount: '' })
 const money = (n: number) => `₹${n.toLocaleString('en-IN')}`
 
-export default function ManualOrderForm({ date, onAdded }: { date: string; onAdded: () => void }) {
+// 0 in the settings means "no standard price that day" (kitchen closed etc.) —
+// never auto-fill in that case, forcing the admin to notice and use Custom.
+function standardPriceFor(meal: MealType, date: string, pricing: PricingSettings): number {
+  const day = weekdayKey(date)
+  return (meal === 'lunch' ? pricing.lunch : pricing.dinner)[day]
+}
+
+function newLine(date: string, pricing: PricingSettings): Line {
+  const price = standardPriceFor('lunch', date, pricing)
+  return { meal_type: 'lunch', meal_variant: 'standard', qty: '1', amount: price > 0 ? String(price) : '' }
+}
+
+export default function ManualOrderForm({
+  date,
+  pricing,
+  onAdded,
+}: {
+  date: string
+  pricing: PricingSettings
+  onAdded: () => void
+}) {
   const { show } = useToast()
   const [customer, setCustomer] = useState<PickedCustomer | null>(null)
-  const [lines, setLines] = useState<Line[]>([emptyLine()])
+  const [lines, setLines] = useState<Line[]>([newLine(date, pricing)])
   const [paid, setPaid] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Once pricing loads, prefill any line still sitting on "Standard" with an
+  // empty amount (never overwrites a value the admin already typed).
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing form state to the pricing settings once they load
+    setLines((ls) =>
+      ls.map((l) => {
+        if (l.meal_variant !== 'standard' || l.amount !== '') return l
+        const price = standardPriceFor(l.meal_type, date, pricing)
+        return price > 0 ? { ...l, amount: String(price) } : l
+      })
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- date changes are handled by the effect below
+  }, [pricing])
+
+  // Changing the day being logged always re-syncs every "Standard" line to that
+  // day's price — including clearing it back to blank on a day with no standard
+  // price (e.g. closed), so a stale price from a previous day never lingers.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing form state to the newly selected date
+    setLines((ls) =>
+      ls.map((l) => {
+        if (l.meal_variant !== 'standard') return l
+        const price = standardPriceFor(l.meal_type, date, pricing)
+        return { ...l, amount: price > 0 ? String(price) : '' }
+      })
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- pricing changes are handled by the effect above
+  }, [date])
+
   function update(i: number, patch: Partial<Line>) {
-    setLines((ls) => ls.map((l, idx) => (idx === i ? { ...l, ...patch } : l)))
+    setLines((ls) =>
+      ls.map((l, idx) => {
+        if (idx !== i) return l
+        const next = { ...l, ...patch }
+        // Switching to/within "Standard" always re-fills the configured price.
+        if (('meal_type' in patch || 'meal_variant' in patch) && next.meal_variant === 'standard') {
+          const price = standardPriceFor(next.meal_type, date, pricing)
+          next.amount = price > 0 ? String(price) : ''
+        }
+        return next
+      })
+    )
   }
   function addLine() {
-    setLines((ls) => [...ls, emptyLine()])
+    setLines((ls) => [...ls, newLine(date, pricing)])
   }
   function removeLine(i: number) {
     setLines((ls) => (ls.length === 1 ? ls : ls.filter((_, idx) => idx !== i)))
@@ -63,7 +123,7 @@ export default function ManualOrderForm({ date, onAdded }: { date: string; onAdd
       }
       show(`Logged ${clean.length} item${clean.length > 1 ? 's' : ''}`, 'success')
       setCustomer(null)
-      setLines([emptyLine()])
+      setLines([newLine(date, pricing)])
       setPaid(true)
       onAdded()
     } catch (err) {
@@ -97,9 +157,7 @@ export default function ManualOrderForm({ date, onAdded }: { date: string; onAdd
               value={l.meal_variant}
               onChange={(e) => update(i, { meal_variant: e.target.value as MealVariant })}
             >
-              <option value="rice_bowl">Rice Bowl</option>
-              <option value="salad">Salad</option>
-              <option value="wrap">Wrap</option>
+              <option value="standard">Standard</option>
               <option value="custom">Custom</option>
             </Select>
             <Input

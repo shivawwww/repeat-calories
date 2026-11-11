@@ -2,7 +2,6 @@ import {
   ExpenseCategory,
   MealType,
   MealVariant,
-  SubscriptionPlan,
 } from '@/types/db'
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
@@ -17,8 +16,7 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
 ]
 
 export const MEAL_TYPES: MealType[] = ['lunch', 'dinner']
-export const MEAL_VARIANTS: MealVariant[] = ['rice_bowl', 'salad', 'wrap', 'custom']
-export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = ['lunch', 'dinner', 'lunch_dinner']
+export const MEAL_VARIANTS: MealVariant[] = ['standard', 'custom']
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 

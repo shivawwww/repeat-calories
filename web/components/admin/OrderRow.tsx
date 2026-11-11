@@ -1,25 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import OrderStatusBadge from '@/components/order/OrderStatusBadge'
 import Badge from '@/components/ui/Badge'
-import Button from '@/components/ui/Button'
 import { api } from '@/lib/api'
 import { useToast } from '@/components/ui/Toast'
 import { formatIST } from '@/lib/datetime'
-import { Order, OrderStatus } from '@/types/models'
-
-const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus>> = {
-  confirmed: 'preparing',
-  preparing: 'ready',
-  ready: 'delivered',
-}
-
-const NEXT_LABEL: Partial<Record<OrderStatus, string>> = {
-  confirmed: 'Start Preparing',
-  preparing: 'Mark Ready',
-  ready: 'Mark Delivered',
-}
+import { Order } from '@/types/models'
 
 function elapsed(createdAt: string): string {
   const diffMs = Date.now() - new Date(createdAt).getTime()
@@ -30,29 +16,11 @@ function elapsed(createdAt: string): string {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
-export default function OrderRow({
-  order,
-  onStatusChange,
-}: {
-  order: Order
-  onStatusChange: (id: string, status: OrderStatus) => Promise<void>
-}) {
+export default function OrderRow({ order }: { order: Order }) {
   const { show } = useToast()
-  const [updating, setUpdating] = useState(false)
   const [paid, setPaid] = useState(order.payment_status === 'paid')
   const [payBusy, setPayBusy] = useState(false)
-  const next = NEXT_STATUS[order.status]
   const isManual = order.source === 'manual'
-
-  async function handleAdvance() {
-    if (!next) return
-    setUpdating(true)
-    try {
-      await onStatusChange(order.id, next)
-    } finally {
-      setUpdating(false)
-    }
-  }
 
   async function togglePaid() {
     setPayBusy(true)
@@ -73,12 +41,10 @@ export default function OrderRow({
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-display text-sm font-bold text-ink">{order.order_number}</p>
-            <OrderStatusBadge status={order.status} />
-            {isManual && <Badge tone="neutral">{order.order_kind === 'subscription' ? 'subscription' : 'manual'}</Badge>}
             {order.meal_type && (
               <Badge tone="orange">
                 {order.meal_type}
-                {order.meal_variant && order.meal_variant !== 'rice_bowl' ? ` · ${order.meal_variant.replace('_', ' ')}` : ''}
+                {order.meal_variant === 'custom' ? ' · custom' : ''}
               </Badge>
             )}
           </div>
@@ -109,28 +75,21 @@ export default function OrderRow({
         </p>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="stat-figure font-display text-lg font-bold text-ink">₹{order.total_amount}</span>
-          {isManual ? (
-            <button
-              type="button"
-              onClick={togglePaid}
-              disabled={payBusy}
-              className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide disabled:opacity-50 ${
-                paid ? 'bg-green-soft text-green-dark' : 'bg-gold/15 text-gold'
-              }`}
-            >
-              {paid ? 'Paid' : 'Mark paid'}
-            </button>
-          ) : (
-            <Badge tone={paid ? 'green' : 'gold'}>{paid ? 'paid' : order.payment_status}</Badge>
-          )}
-        </div>
-        {next && (
-          <Button size="sm" loading={updating} onClick={handleAdvance}>
-            {NEXT_LABEL[order.status]}
-          </Button>
+      <div className="mt-4 flex items-center gap-2">
+        <span className="stat-figure font-display text-lg font-bold text-ink">₹{order.total_amount}</span>
+        {isManual ? (
+          <button
+            type="button"
+            onClick={togglePaid}
+            disabled={payBusy}
+            className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide disabled:opacity-50 ${
+              paid ? 'bg-green-soft text-green-dark' : 'bg-gold/15 text-gold'
+            }`}
+          >
+            {paid ? 'Paid' : 'Mark paid'}
+          </button>
+        ) : (
+          <Badge tone={paid ? 'green' : 'gold'}>{paid ? 'paid' : order.payment_status}</Badge>
         )}
       </div>
     </div>

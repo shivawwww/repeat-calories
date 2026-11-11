@@ -27,14 +27,14 @@ export function currentISTYear(): number {
 }
 
 // Today in IST as a plain calendar date, e.g. "2026-09-07". Used for expense
-// rows and subscription date ranges, which are day-granular, not instants.
+// rows and manual-order dates, which are day-granular, not instants.
 export function todayISTDate(): string {
   return dayjs().tz(IST).format('YYYY-MM-DD')
 }
 
 // A calendar date pinned to 12:00 IST — the `created_at` we stamp on manual /
-// subscription / imported orders so they sort into the right day regardless of
-// when they were actually keyed in.
+// imported orders so they sort into the right day regardless of when they
+// were actually keyed in.
 export function istDateAtNoon(dateStr: string): string {
   return dayjs.tz(`${dateStr} 12:00:00`, IST).format('YYYY-MM-DDTHH:mm:ssZ')
 }
@@ -49,28 +49,12 @@ export function istDayRange(dateStr: string): { start: string; end: string } {
   }
 }
 
-// Every 'YYYY-MM-DD' between start and end (inclusive) whose weekday (0=Sun..6=Sat)
-// is in `weekdays`. Drives subscription daily-order generation.
-export function eachDeliveryDay(start: string, end: string, weekdays: number[]): string[] {
-  const out: string[] = []
-  let cursor = dayjs.tz(start, IST).startOf('day')
-  const last = dayjs.tz(end, IST).startOf('day')
-  while (!cursor.isAfter(last)) {
-    if (weekdays.includes(cursor.day())) out.push(cursor.format('YYYY-MM-DD'))
-    cursor = cursor.add(1, 'day')
-  }
-  return out
-}
+export const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
+export type WeekdayKey = (typeof WEEKDAY_KEYS)[number]
 
-// The next `count` delivery days strictly after `afterDate` — used to append
-// make-up days when a subscription meal was skipped.
-export function nextDeliveryDays(afterDate: string, weekdays: number[], count: number): string[] {
-  const out: string[] = []
-  let cursor = dayjs.tz(afterDate, IST).startOf('day').add(1, 'day')
-  let guard = 0
-  while (out.length < count && guard++ < 800) {
-    if (weekdays.includes(cursor.day())) out.push(cursor.format('YYYY-MM-DD'))
-    cursor = cursor.add(1, 'day')
-  }
-  return out
+// Which weekday a 'YYYY-MM-DD' calendar date falls on — used to look up the
+// per-day standard meal price. No timezone involved; it's plain calendar math.
+export function weekdayKey(dateStr: string): WeekdayKey {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return WEEKDAY_KEYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]
 }

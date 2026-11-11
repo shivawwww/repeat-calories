@@ -18,9 +18,8 @@ export async function POST(req: NextRequest) {
   }
 
   const db = await getDb()
-  const [orders, subscriptions, expenses, carts, walkins, counters] = await Promise.all([
+  const [orders, expenses, carts, walkins, counters] = await Promise.all([
     db.collection('orders').deleteMany({}),
-    db.collection('subscriptions').deleteMany({}),
     db.collection('expenses').deleteMany({}),
     db.collection('carts').deleteMany({}),
     db.collection('users').deleteMany({ is_walkin: true }),
@@ -29,7 +28,6 @@ export async function POST(req: NextRequest) {
 
   return success('Database wiped', {
     orders: orders.deletedCount,
-    subscriptions: subscriptions.deletedCount,
     expenses: expenses.deletedCount,
     carts: carts.deletedCount,
     walkin_customers: walkins.deletedCount,

@@ -9,7 +9,6 @@ import { OrderDoc } from '@/types/db'
 // GET /api/admin/orders/getall
 //   ?date=YYYY-MM-DD   orders whose service date (created_at, IST) is that day
 //   ?source=online|manual
-//   ?kind=one_time|subscription
 export async function GET(req: NextRequest) {
   const admin = await getCurrentAdmin()
   if (!admin) return fail('Unauthorized', 403)
@@ -17,8 +16,6 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const date = searchParams.get('date')
   const source = searchParams.get('source')
-  const kind = searchParams.get('kind')
-  const subscriptionId = searchParams.get('subscription_id')
   const payment = searchParams.get('payment')
 
   const filter: Record<string, unknown> = {}
@@ -26,19 +23,16 @@ export async function GET(req: NextRequest) {
     const { start, end } = istDayRange(date)
     filter.created_at = { $gte: start, $lte: end }
   }
-  if (subscriptionId) filter.subscription_id = subscriptionId
   if (payment === 'paid') filter.payment_status = 'paid'
   else if (payment === 'unpaid') filter.payment_status = 'pending'
   else if (payment === 'owed') {
-    // Unpaid AND already delivered / past service date (not future, not skipped).
+    // Unpaid AND past service date (not future).
     filter.payment_status = 'pending'
-    filter.delivery_state = { $ne: 'skipped' }
     filter.created_at = { ...(filter.created_at as object), $lte: istDayRange(todayISTDate()).end }
   }
   // Legacy website orders predate the `source` field — treat missing as 'online'.
   if (source === 'online') filter.source = { $ne: 'manual' }
   else if (source === 'manual') filter.source = 'manual'
-  if (kind === 'one_time' || kind === 'subscription') filter.order_kind = kind
 
   const db = await getDb()
   const orders = await db

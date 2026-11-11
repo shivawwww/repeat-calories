@@ -4,8 +4,8 @@ import { getCurrentAdmin } from '@/lib/auth'
 import { success, fail } from '@/lib/apiResponse'
 import { OrderDoc } from '@/types/db'
 
-// Delete a hand-logged order (wrong entry, cancelled subscription day).
-// Website (Razorpay/COD) orders are never deletable here.
+// Delete a hand-logged order (wrong entry). Website (Razorpay/COD) orders are
+// never deletable here.
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await getCurrentAdmin()
   if (!admin) return fail('Unauthorized', 403)
